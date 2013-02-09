@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+   <PreferenceCategory
+       android:title="@string/category_settings">
+<CheckBoxPreference
+        android:key="usedaycycle"
+        android:title="@string/usedaycycle"
+        android:summary="@string/summary_usedaycycle"
+        android:defaultValue="true" />
+<CheckBoxPreference
+        android:dependency="usedaycycle"
+        android:key="uselocation"
+        android:title="@string/uselocation"
+        android:summary="@string/summary_uselocation"
+        android:defaultValue="false" />
+<CheckBoxPreference
+        android:key="usemonthcycle"
+        android:disableDependentsState="true"
+        android:title="@string/usemonthcycle"
+        android:summary="@string/summary_usemonthcycle"
+        android:defaultValue="true" />
+<com.upokecenter.android.colorwallpaper.HuePreference
+        android:key="colorhue"
+        android:dependency="usemonthcycle"
+        android:dialogLayout="@layout/huedialoglayout"
+     	android:title="@string/colorhue"
+        android:dialogTitle="@string/colorhue"
+        android:summary="@string/summary_colorhue"
+        android:defaultValue="0" />
+<CheckBoxPreference
+        android:key="reacttotaps"
+        android:title="@string/reacttotaps"
+        android:summary="@string/summary_reacttotaps"
+        android:defaultValue="true" />
+<CheckBoxPreference
+        android:key="fadeinboxes"
+        android:title="@string/fadeinboxes"
+        android:summary="@string/summary_fadeinboxes"
+        android:defaultValue="true" />
+<ListPreference
+        android:key="drawspeed"
+        android:summary="@string/summary_drawspeed"
+        android:title="@string/drawspeed"
+        android:dialogTitle="@string/drawspeed"
+        android:entries="@array/entries_drawspeed"
+        android:entryValues="@array/values_drawspeed"
+        android:defaultValue="@string/default_drawspeed" />
+</PreferenceCategory>
+   <PreferenceCategory
+       android:title="@string/category_thisprogram">
+<com.upokecenter.android.util.IntentPreference 
+    android:title="@string/donate" >
+    <intent android:action="android.intent.action.VIEW"
+        android:data="http://www.upokecenter.com/d"/>
+</com.upokecenter.android.util.IntentPreference>
+<com.upokecenter.android.util.IntentPreference
+     android:title="@string/share" >
+    <intent android:action="android.intent.action.SEND"
+            android:mimeType="text/plain"
+            android:targetClass="com.upokecenter.android.util.ShareActivity"
+            android:targetPackage="com.upokecenter.android.colorwallpaper">
+        <extra android:name="android.intent.extra.TITLE"
+            android:value="@string/sharevia"></extra>
+        <extra android:name="android.intent.extra.TEXT"
+            android:value="@string/sharetext"></extra>
+        <extra android:name="android.intent.extra.SUBJECT"
+            android:value="@string/sharesubject"></extra>
+        </intent>
+</com.upokecenter.android.util.IntentPreference>
+<com.upokecenter.android.util.IntentPreference 
+    android:title="@string/homepage" >
+    <intent android:action="android.intent.action.VIEW"
+        android:data="http://www.upokecenter.com/projects/colorwallpaper"/>
+</com.upokecenter.android.util.IntentPreference>
+    
+<com.upokecenter.android.util.AlertDialogPreference
+    android:key="about"
+     android:title="@string/about"
+     android:dialogMessage="@string/aboutmessage"
+     android:dialogTitle="@string/app_name" 
+     android:negativeButtonText="@null"
+     android:positiveButtonText="@string/close" />
+</PreferenceCategory>
+</PreferenceScreen>
