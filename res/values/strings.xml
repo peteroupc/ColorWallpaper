@@ -8,8 +8,8 @@
  <string name="close">Close this box</string>
  <string name="nowaytoshare">There are no applications installed to help you share this app.</string>
  <string name="about">About this app</string>
-  <string name="aboutmessage">&#169; 2013 Peter Occil\nhttp://www.upokecenter.com/\n\nPermission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
+  <string name="aboutmessage">Licensed under the Expat License.\n\n&#169; 2013 Peter Occil\nhttp://www.upokecenter.com/\n\nPermission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \'Software\'), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
@@ -27,12 +27,11 @@ THE SOFTWARE.</string>
  <string name="sharetext">I\'m using Colored Boxes Live Wallpaper for Android. Learn more: http://www.upokecenter.com/projects/colorwallpaper</string>
   <string name="sharesubject">I\'m using Colored Boxes Live Wallpaper for Android</string>
  <string name="donate">Donate to this app\'s author</string>
- <string name="fadeinboxes">Fade in boxes</string>
-    <string name="summary_fadeinboxes">Fade in the boxes drawn</string>
+ <string name="fadeinboxes">Fade in boxes drawn</string>
  <string name="usedaycycle">Enable day cycle</string>
     <string name="summary_usedaycycle">Boxes become darker at night and lighter at day</string>
  <string name="uselocation">Use your location</string>
-    <string name="summary_uselocation">Detects your location to help find out if it\'s day or night.</string>
+    <string name="summary_uselocation">Detects your location to help find out if it\'s day or night</string>
     <string name="reacttotaps">React to screen tap</string>
     <string name="summary_reacttotaps">Draw colored boxes where you tap the home screen</string>
     <string name="usemonthcycle">Enable month cycle</string>

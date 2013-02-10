@@ -26,6 +26,16 @@ public final class AppManager {
 		String packageName=getApplication().getApplicationInfo().packageName;
 		return getApplication().getResources().getIdentifier(name,type,packageName);
 	}
+	public static int getStyleableResource(String name){
+		String packageName=getApplication().getApplicationInfo().packageName;
+		return (Integer)Reflection.getStaticFieldByName(
+				Reflection.getClassForName(packageName+".R$styleable"),name,0);
+	}
+	public static int[] getStyleableResourceGroup(String name){
+		String packageName=getApplication().getApplicationInfo().packageName;
+		return (int[])Reflection.getStaticFieldByName(
+				Reflection.getClassForName(packageName+".R$styleable"),name,new int[0]);
+	}
 	public static int getStringResource(String name){
 		return getResource("string",name);
 	}

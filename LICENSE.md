@@ -1,3 +1,5 @@
+Licensed under the Expat License.
+
 Copyright (C) 2013 Peter Occil
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

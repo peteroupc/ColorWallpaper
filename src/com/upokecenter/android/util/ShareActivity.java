@@ -50,7 +50,6 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 		final Activity thisActivity=getThis();
 		Intent share = new Intent(Intent.ACTION_SEND);
 		share.setType("text/plain");
-		
 		share.putExtra(Intent.EXTRA_TEXT,message);
 		share.putExtra(Intent.EXTRA_SUBJECT,subject);
 		List<Intent> intents = new ArrayList<Intent>();
@@ -73,7 +72,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 			String packageName=intentAct.packageName;
 			intent.putExtra(Intent.EXTRA_SUBJECT, subject);
 			intent.putExtra(Intent.EXTRA_TEXT, message);
-			if(useChooser){
+			if(useChooser && (Build.VERSION.SDK_INT<Build.VERSION_CODES.ICE_CREAM_SANDWICH)){
 				modifyIntent(intent);
 			}
 			intent.setPackage(packageName);
@@ -200,6 +199,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 	@Override
 	public void onCreate(Bundle b){
 		super.onCreate(b);
+		this.useChooser=(Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH);
 		if(b==null || !this.useChooser){
 			AppManager.initialize(getThis());
 			Intent intent=getThis().getIntent();

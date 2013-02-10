@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.DialogUtility;
 import com.upokecenter.android.util.IChoiceListener;
@@ -28,12 +27,12 @@ public class LauncherActivity extends Activity {
 							R.array.entries_launcher,
 		    new IChoiceListener(){
 			public void onChoice(int choice){
-				if(choice==0){
+				if(choice==0){ // Settings
 					Intent intent=new Intent(Intent.ACTION_MAIN);
 					intent.setClass(AppManager.getApplication(),SettingsActivity.class);
 					startActivity(intent);
 				}
-				if(choice==1){
+				if(choice==1){ // Show Live Wallpapers or Set Live Wallpaper
 					Intent intent=null;
 					if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN){
 						intent=new Intent("android.service.wallpaper.CHANGE_LIVE_WALLPAPER");

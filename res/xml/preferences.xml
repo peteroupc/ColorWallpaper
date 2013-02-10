@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/com.upokecenter.android.colorwallpaper"
+     >
    <PreferenceCategory
        android:title="@string/category_settings">
 <CheckBoxPreference
@@ -19,13 +22,16 @@
         android:title="@string/usemonthcycle"
         android:summary="@string/summary_usemonthcycle"
         android:defaultValue="true" />
-<com.upokecenter.android.colorwallpaper.HuePreference
+<com.upokecenter.android.util.ContinuousValuePreference
         android:key="colorhue"
         android:dependency="usemonthcycle"
         android:dialogLayout="@layout/huedialoglayout"
      	android:title="@string/colorhue"
         android:dialogTitle="@string/colorhue"
         android:summary="@string/summary_colorhue"
+        custom:minValue="0"
+        custom:maxValue="359"
+        custom:label="@string/xdegrees"
         android:defaultValue="0" />
 <CheckBoxPreference
         android:key="reacttotaps"
@@ -35,7 +41,6 @@
 <CheckBoxPreference
         android:key="fadeinboxes"
         android:title="@string/fadeinboxes"
-        android:summary="@string/summary_fadeinboxes"
         android:defaultValue="true" />
 <ListPreference
         android:key="drawspeed"
@@ -57,8 +62,8 @@
      android:title="@string/share" >
     <intent android:action="android.intent.action.SEND"
             android:mimeType="text/plain"
-            android:targetClass="com.upokecenter.android.util.ShareActivity"
-            android:targetPackage="com.upokecenter.android.colorwallpaper">
+            android:targetPackage="com.upokecenter.android.colorwallpaper"
+            android:targetClass="com.upokecenter.android.util.ShareActivity">
         <extra android:name="android.intent.extra.TITLE"
             android:value="@string/sharevia"></extra>
         <extra android:name="android.intent.extra.TEXT"

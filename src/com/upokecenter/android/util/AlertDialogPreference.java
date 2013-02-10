@@ -93,13 +93,6 @@ public class AlertDialogPreference extends Preference {
 		}
 	}
 
-	protected String settingSummary = null;
-	protected int layoutResource = 0;
-	protected int dialogTitle = 0;
-	WeakReference<AlertDialog> alertDialog = null;
-	protected int negativeButton = 0;
-	protected int positiveButton = 0;
-	protected int dialogMessage = 0;
 
 	@Override
 	protected Object onGetDefaultValue(TypedArray a, int index) {
@@ -144,6 +137,14 @@ public class AlertDialogPreference extends Preference {
 		else
 			throw new IllegalStateException();
 	}
+
+	private String settingSummary = null;
+	private int layoutResource = 0;
+	private int dialogTitle = 0;
+	private WeakReference<AlertDialog> alertDialog = null;
+	private int negativeButton = 0;
+	private int positiveButton = 0;
+	private int dialogMessage = 0;
 
 	public AlertDialogPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
