@@ -3,7 +3,7 @@
 
     <string name="category_settings">Settings</string>
     <string name="category_thisprogram">This App</string>
-    <string name="xdegrees">%d deg.</string>
+    <string name="xdegrees">%d degrees</string>
     <string name="app_name">Colored Boxes Live Wallpaper</string>
  <string name="close">Close this box</string>
  <string name="nowaytoshare">There are no applications installed to help you share this app.</string>
@@ -36,12 +36,11 @@ THE SOFTWARE.</string>
     <string name="summary_reacttotaps">Draw colored boxes where you tap the home screen</string>
     <string name="usemonthcycle">Enable month cycle</string>
  <string name="homepage">App homepage</string>
-    <string name="drawspeed">Box drawing speed</string>
- <string name="summary_drawspeed">%s</string>
- <string name="default_drawspeed">medium</string>
+    <string name="drawspeedfps">Box drawing speed</string>
+ <string name="summary_drawspeedfps">Up to %d FPS</string>
  <string name="summary_usemonthcycle">Boxes change color as the month progresses</string>
-    <string name="colorhue">Box color hue</string>
-    <string name="summary_colorhue">Color wheel hue of boxes drawn (currently %s deg.)</string>
+    <string name="colorhue">Boxes\' color wheel hue</string>
+    <string name="summary_colorhue">%s degrees</string>
  <string-array name="values_drawspeed">
         <item>slow</item>
         <item>medium</item>

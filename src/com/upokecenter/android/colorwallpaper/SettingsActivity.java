@@ -44,6 +44,7 @@ public class SettingsActivity extends BaseSettingsActivity {
 	    if(provider!=null){
 	    	Reflection.invokeByName(provider,"setShareIntent",null,shareIntent(true));
 	    }
+	    super.onCreateOptionsMenu(menu);
 	    return true;
 	}
 

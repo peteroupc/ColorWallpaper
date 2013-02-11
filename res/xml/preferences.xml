@@ -42,14 +42,16 @@
         android:key="fadeinboxes"
         android:title="@string/fadeinboxes"
         android:defaultValue="true" />
-<ListPreference
-        android:key="drawspeed"
-        android:summary="@string/summary_drawspeed"
-        android:title="@string/drawspeed"
-        android:dialogTitle="@string/drawspeed"
-        android:entries="@array/entries_drawspeed"
-        android:entryValues="@array/values_drawspeed"
-        android:defaultValue="@string/default_drawspeed" />
+<com.upokecenter.android.util.ContinuousValuePreference
+        android:key="drawspeedfps"
+        android:summary="@string/summary_drawspeedfps"
+        android:dialogLayout="@layout/huedialoglayout"
+        android:title="@string/drawspeedfps"
+        android:dialogTitle="@string/drawspeedfps"
+        custom:minValue="1"
+        custom:maxValue="60"
+        custom:label="Up to %d FPS"
+        android:defaultValue="10" />
 </PreferenceCategory>
    <PreferenceCategory
        android:title="@string/category_thisprogram">

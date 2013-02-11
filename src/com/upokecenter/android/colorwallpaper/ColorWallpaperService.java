@@ -1,12 +1,10 @@
 package com.upokecenter.android.colorwallpaper;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
@@ -15,28 +13,38 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
+import com.upokecenter.android.location.ILocationHelper;
+import com.upokecenter.android.location.ISimpleLocationListener;
+import com.upokecenter.android.location.LocationHelper;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.BitmapUtility;
-import com.upokecenter.util.Reflection;
 import com.upokecenter.util.SunriseSunset;
 
-public class ColorWallpaperService extends WallpaperService {
+public class ColorWallpaperService extends BaseWallpaperService {
+
 
 	@Override
 	public Engine onCreateEngine() {
 		AppManager.initialize(this);
 		return new Engine(){
+			ILocationHelper helper=null;
+			final int DIPCONVERT=30;
+			int width=0;
+			int height=0;
+			SharedPreferences prefs=null;
+			Random random=null;
+			Location currentLocation=null;
+			SunriseSunset.DayState dayState;
+			Bitmap scratchBitmap=null;
+			Canvas scratchCanvas=null;
+			int onDayStateCount=0;
+
+
 			class ColorTransition {
 				Rect rect;
 				int endColor;
@@ -73,70 +81,82 @@ public class ColorWallpaperService extends WallpaperService {
 				ct.currentFrame=0;
 				transitions.add(ct);
 			}
-			private void drawColorTransitions(SurfaceHolder surface){
-				if(!this.isVisible())return;
-				//if(true)return;
-				Canvas c=null;
-				try {
-					if(surface!=null)
-						c=surface.lockCanvas();
-					if(c!=null){
-						Rect bitmapRect=new Rect(0,0,scratchBitmap.getWidth(),scratchBitmap.getHeight());
-						c.drawBitmap(scratchBitmap,bitmapRect,bitmapRect,null);
-						for(int i=0;i<transitions.size();i++){
-							ColorTransition ct=transitions.get(i);
-							Paint p=new Paint();
-							int color=ct.getColor();
-							p.setColor(color);
-							c.drawRect(ct.rect,p);
-						}
-						for(int i=0;i<transitions.size();i++){
-							ColorTransition ct=transitions.get(i);
-							Paint p=new Paint();
-							int color=ct.getColor();
-							p.setColor(color);
-							if(Color.alpha(color)==0xFF){
-								scratchCanvas.drawRect(ct.rect,p);
-							}							
-						}
-					}
-				} catch(RuntimeException e){
-				} finally {
-					if(c!=null && surface!=null){
-						try {
-							surface.unlockCanvasAndPost(c);
-						} catch(IllegalArgumentException e){
 
-						}
+			@Override
+			protected void drawFrame(Canvas c, long e) {
+				int curWidth=c.getClipBounds().width();
+				int curHeight=c.getClipBounds().height();
+				if(curWidth!=width || curHeight!=height){
+					width=curWidth;
+					height=curHeight;
+					int background=Color.HSVToColor(new float[]{
+							getCurrentHue(),0.2f,getValueOffset()/40f
+					});
+					scratchBitmap=BitmapUtility.redrawBitmap(
+							scratchBitmap,width,height,background);
+					scratchCanvas=new Canvas(scratchBitmap);
+					if(c!=null){
+						c.drawBitmap(scratchBitmap,null,
+								new RectF(0,0,
+										scratchBitmap.getWidth(),
+										scratchBitmap.getHeight()),null);
 					}
 				}
+				if(scratchBitmap!=null){
+					Rect bitmapRect=new Rect(0,0,scratchBitmap.getWidth(),scratchBitmap.getHeight());
+					c.drawBitmap(scratchBitmap,bitmapRect,bitmapRect,null);
+				}
+				for(int i=0;i<transitions.size();i++){
+					ColorTransition ct=transitions.get(i);
+					Paint p=new Paint();
+					int color=ct.getColor();
+					p.setColor(color);
+					c.drawRect(ct.rect,p);
+				}
+				for(int i=0;i<transitions.size();i++){
+					ColorTransition ct=transitions.get(i);
+					Paint p=new Paint();
+					int color=ct.getColor();
+					p.setColor(color);
+					if(Color.alpha(color)==0xFF && scratchCanvas!=null){
+						scratchCanvas.drawRect(ct.rect,p);
+					}							
+				}
+				updateColorTransitions();
 			}
-
-			int width=0;
-			int height=0;
-			SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
-			Random random=new Random();
-			Handler handler=new Handler();
-			Runnable doDraw;
-			Runnable updateDayState;
-			Location currentLocation=null;
-			SunriseSunset.DayState dayState;
-			SurfaceHolder currentSurface;
-			Bitmap scratchBitmap=null;
-			Canvas scratchCanvas=null;
+			
 			@Override
-			public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-				super.onSurfaceChanged(holder, format, width, height);
-				this.currentSurface=holder;
-				this.width=width;
-				this.height=height;
-				redrawSurface(holder);
+			public int getDelay(){
+				int fps=prefs.getInt("drawspeedfps",10);
+				if(fps!=0){
+					return 1000/Math.max(fps,1);
+				}
+				String speed=prefs.getString("drawspeed","medium");
+				if("slow".equals(speed))return 80;
+				if("medium".equals(speed))return 40;
+				return 20;
 			}
-
+			
+			@Override
+			protected void onFrame() {
+				int boxcount=8;
+				for(int i=0;i<boxcount;i++){
+						drawColor(Color.HSVToColor(new float[]{
+								getCurrentHue()-10f+random.nextInt(20),
+								((10+random.nextInt(11))/20.0f),
+								Math.min(1.0f,((getValueOffset()+random.nextInt(21))/40.0f))
+						}));							
+				}
+				if(onDayStateCount==0){
+					updateDayState();
+				}
+				onDayStateCount+=1;
+				onDayStateCount%=(2000/getDelay());
+			}
 
 			@Override
 			public Bundle onCommand(String action, int x, int y, int z, Bundle extras, boolean resultRequested){
-				if(action.equals("android.wallpaper.tap")){
+				if("android.wallpaper.tap".equals(action)){
 					if(prefs.getBoolean("reacttotaps",true)){
 						for(int i=0;i<8;i++){
 							int background=Color.HSVToColor(new float[]{
@@ -144,13 +164,11 @@ public class ColorWallpaperService extends WallpaperService {
 									((10+random.nextInt(11))/20.0f),
 									((10+random.nextInt(11))/20.0f)
 							});
-							drawColor2(currentSurface,background,x,y);							
-						}	        		
-						drawColorTransitions(currentSurface);
-						updateColorTransitions();
+							drawColor2(background,x,y);							
+						}
 					}
 				}
-				return null;
+				return super.onCommand(action,x,y,z,extras,resultRequested);
 			}
 
 
@@ -176,17 +194,6 @@ public class ColorWallpaperService extends WallpaperService {
 				}
 			}
 
-			private boolean isCloseEnough(Location loc, long nanosTolerance){
-				Method method=Reflection.getMethod(loc,"getElapsedRealtimeNanos");
-				Method method2=Reflection.getStaticMethod(SystemClock.class,"elapsedRealtimeNanos");
-				if(method!=null && method2!=null){
-					long locNanos=(Long)Reflection.invoke(loc,method,0);
-					long sysNanos=(Long)Reflection.invoke(loc,method2,0);
-					return Math.abs(locNanos-sysNanos)<nanosTolerance;
-				}
-				return Math.abs(new Date().getTime()-loc.getTime())<nanosTolerance/1000000;
-			}
-
 			private int getValueOffset(){
 				int valueOffset=20;
 				if(prefs.getBoolean("usedaycycle",true)){
@@ -202,140 +209,59 @@ public class ColorWallpaperService extends WallpaperService {
 				return valueOffset;
 			}
 
-			LocationListener currentListener=null;
-
-			private void setUpLocation(){
-				Criteria criteria = new Criteria();
-				criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-				criteria.setCostAllowed(false);
-				final LocationManager locationManager =
-						(LocationManager) getSystemService(Context.LOCATION_SERVICE);
-				final String provider = locationManager.getBestProvider(criteria, true);
-				boolean enabled = provider!=null &&
-						prefs.getBoolean("uselocation",true) &&
-						locationManager.isProviderEnabled(provider);
-				if(!enabled){
-					currentLocation=null;
-				}
-				if(currentListener!=null && !enabled){
-					locationManager.removeUpdates(currentListener);
-					currentListener=null;
-				} else if(currentListener==null && enabled){
-					currentListener=new LocationListener(){
-						@Override public void onLocationChanged(Location loc){
-							if(loc!=null){
-								currentLocation=loc;
-								handler.removeCallbacks(updateDayState);
-								handler.postDelayed(updateDayState, 50);
-							}
-						}
-						@Override
-						public void onProviderDisabled(String arg0) {
-							handler.removeCallbacks(updateDayState);
-							handler.postDelayed(updateDayState, 50);
-						}
-						@Override
-						public void onProviderEnabled(String provider) {
-							if(currentLocation==null){
-								Location loc=locationManager.getLastKnownLocation(provider);
-								if(loc!=null){
-									if(isCloseEnough(loc,600000*1000000)){
-										// we have a fresh location already
-										currentLocation=loc;
-										handler.removeCallbacks(updateDayState);
-										handler.postDelayed(updateDayState, 50);
-									}
-								}
-							}
-						}
-						@Override
-						public void onStatusChanged(String arg0,
-								int arg1, Bundle arg2) {
-						}
-					};
-					Location loc=locationManager.getLastKnownLocation(provider);
-					if(loc!=null){
-						if(isCloseEnough(loc,600000*1000000)){
-							// we have a fresh location already
-							currentLocation=loc;
-						}
-					}
-					handler.postDelayed(new Runnable(){@Override
-						public void run(){
-						locationManager.requestLocationUpdates(
-								provider,10*60*1000,100,currentListener
-								);
-					}},loc==null ? 1 : 30*1000); // wait 30 seconds if we have a known location
-				}
-			}
-
+			
+			
 			@Override public void onDestroy(){
+				if(helper!=null){
+					helper.removeAllLocationListeners();
+				}
 				if(scratchBitmap!=null){
 					scratchBitmap.recycle();
 					scratchBitmap=null;
 				}
+				super.onDestroy();
+			}
+			
+			private void updateDayState(){
+				if(currentLocation!=null){
+					dayState=SunriseSunset.getCurrentDayState(
+							currentLocation.getLatitude(),
+							currentLocation.getLongitude());
+				} else {
+					Calendar cal=Calendar.getInstance();
+					int hour=cal.get(Calendar.HOUR_OF_DAY);
+					if(hour<6)dayState=SunriseSunset.DayState.Night;
+					else if(hour<7)dayState=SunriseSunset.DayState.NightToDay;
+					else if(hour<17)dayState=SunriseSunset.DayState.Day;
+					else if(hour<18)dayState=SunriseSunset.DayState.DayToNight;
+					else dayState=SunriseSunset.DayState.Night;
+				}				
 			}
 
 			@Override public void onCreate(SurfaceHolder surface){
-				this.currentSurface=surface;
+				super.onCreate(surface);
+				prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
+				random=new Random();
+				helper=new LocationHelper(AppManager.getApplication());
+				helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
+				helper.addLocationListener(new ISimpleLocationListener(){
+					@Override
+					public void onLocation(Location loc) {
+						currentLocation=loc;
+						updateDayState();
+					}
+				});
 				prefs.registerOnSharedPreferenceChangeListener(
 						new OnSharedPreferenceChangeListener(){
 							@Override
 							public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 								if(key=="uselocation"){
-									setUpLocation();
+									helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
 								}
 							}
 						});
-				setUpLocation();
-				updateDayState=new Runnable(){
-					@Override
-					public void run(){
-						if(isVisible()){
-							if(currentLocation!=null){
-								dayState=SunriseSunset.getCurrentDayState(
-										currentLocation.getLatitude(),
-										currentLocation.getLongitude());
-							} else {
-								Calendar cal=Calendar.getInstance();
-								int hour=cal.get(Calendar.HOUR_OF_DAY);
-								if(hour<6)dayState=SunriseSunset.DayState.Night;
-								else if(hour<7)dayState=SunriseSunset.DayState.NightToDay;
-								else if(hour<17)dayState=SunriseSunset.DayState.Day;
-								else if(hour<18)dayState=SunriseSunset.DayState.DayToNight;
-								else dayState=SunriseSunset.DayState.Night;
-							}
-						}
-						handler.removeCallbacks(updateDayState);
-						handler.postDelayed(updateDayState, 2000);
-					}
-				};
-				updateDayState.run();
-				doDraw=new Runnable(){
-					@Override
-					public void run(){
-						if(isVisible()){
-							String speed=prefs.getString("drawspeed","medium");
-							int boxcount=8;
-							if(speed.equals("slow"))boxcount=2;
-							else if(speed.equals("fast"))boxcount=16;
-							for(int i=0;i<boxcount;i++){
-								drawColor(currentSurface,Color.HSVToColor(new float[]{
-										getCurrentHue()-10f+random.nextInt(20),
-										((10+random.nextInt(11))/20.0f),
-										Math.min(1.0f,((getValueOffset()+random.nextInt(21))/40.0f))
-								}));							
-							}
-							drawColorTransitions(currentSurface);
-							updateColorTransitions();
-						}
-						handler.removeCallbacks(doDraw);
-						handler.postDelayed(doDraw, 50);
-					}
-				};
 			}
-			int DIPCONVERT=30;
-			private void drawColor2(SurfaceHolder surface, int color, int x, int y){
+			private void drawColor2(int color, int x, int y){
 				if(!this.isVisible())return;
 				int widthlevel=1024/DIPCONVERT;
 				int heightlevel=768/DIPCONVERT;
@@ -346,54 +272,26 @@ public class ColorWallpaperService extends WallpaperService {
 				Rect r=new Rect(
 						Math.max(0,x1-x2),
 						Math.max(0,y1-y2),
-						Math.min(width,x1+x2),
-						Math.min(height,y1+y2));
+						Math.min(this.width,x1+x2),
+						Math.min(this.height,y1+y2));
 				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}
-			private void drawColor(SurfaceHolder surface, int color){
+			private void drawColor(int color){
 				if(!this.isVisible())return;
 				int widthlevel=1024/DIPCONVERT;
 				int heightlevel=768/DIPCONVERT;
-				int x1=random.nextInt(width);
+				int x1=random.nextInt(Math.max(1,this.width));
 				int x2=random.nextInt(widthlevel);
-				int y1=random.nextInt(height);
+				int y1=random.nextInt(Math.max(1,this.height));
 				int y2=random.nextInt(heightlevel);
 				Rect r=new Rect(
 						Math.max(0,x1-x2),
 						Math.max(0,y1-y2),
-						Math.min(width,x1+x2),
-						Math.min(height,y1+y2));
+						Math.min(this.width,x1+x2),
+						Math.min(this.height,y1+y2));
 				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
 				addColorTransition(r,color,frames);
-			}
-
-			private void redrawSurface(SurfaceHolder surface){
-				//DebugUtility.log("redrawSurface");
-				updateDayState.run();
-				this.currentSurface=surface;
-				int background=Color.HSVToColor(new float[]{
-						getCurrentHue(),0.2f,getValueOffset()/40f
-				});
-				Canvas c=surface.lockCanvas();
-				try {
-					scratchBitmap=BitmapUtility.redrawBitmap(
-							scratchBitmap,width,height,background);
-					scratchCanvas=new Canvas(scratchBitmap);
-					if(c!=null){
-						c.drawBitmap(scratchBitmap,null,
-								new RectF(0,0,width,height),null);
-					}
-				} finally {
-					if(c!=null)
-						surface.unlockCanvasAndPost(c);
-				}
-				handler.removeCallbacks(doDraw);
-				handler.postDelayed(doDraw, 50);
-			}
-
-			@Override public void onSurfaceRedrawNeeded(SurfaceHolder surface){
-				redrawSurface(surface);
 			}
 		};
 	}

@@ -223,13 +223,13 @@ public class AlertDialogPreference extends Preference {
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
 					this.getPersisted(defaultValue));
 			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersistedInt(0)));
+				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
 		} else {
 			persist(defaultValue);
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
 					defaultValue);
 			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersistedInt(0)));
+				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
 		}
 	}
 
