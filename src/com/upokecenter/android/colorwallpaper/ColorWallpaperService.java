@@ -23,6 +23,7 @@ import com.upokecenter.android.location.ISimpleLocationListener;
 import com.upokecenter.android.location.LocationHelper;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.BitmapUtility;
+import com.upokecenter.android.wallpaper.BaseWallpaperService;
 import com.upokecenter.util.SunriseSunset;
 
 public class ColorWallpaperService extends BaseWallpaperService {
@@ -209,8 +210,6 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				return valueOffset;
 			}
 
-			
-			
 			@Override public void onDestroy(){
 				if(helper!=null){
 					helper.removeAllLocationListeners();

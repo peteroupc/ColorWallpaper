@@ -5,7 +5,7 @@
  * In the public domain.
  * 
  */
-package com.upokecenter.android.colorwallpaper;
+package com.upokecenter.android.wallpaper;
 
 import android.graphics.Canvas;
 import android.os.Handler;
