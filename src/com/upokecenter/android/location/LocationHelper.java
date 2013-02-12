@@ -17,14 +17,14 @@ import com.upokecenter.util.Reflection;
 public final class LocationHelper implements ILocationHelper {
 	private Location lastKnownLocation=null;
 	private final long NANOS_PER_MS=1000000L;
-	private final long FRESHNESS_DELAY_NANOS=100000L*NANOS_PER_MS;
+	private final long FRESHNESS_DELAY_NANOS=150000L*NANOS_PER_MS;
 	private LocationListener currentListener=null;
 	private ArrayList<ISimpleLocationListener> listeners=null;
 	private String provider=null;
 	private boolean enabled=false;
 	private boolean started=false;
 	private boolean twoProviders=false;
-	private boolean userEnabledSetting=false;
+	private boolean userEnabledSetting=true;
 	private Context application=null;
 	private int minTimeInSeconds=600;
 	private boolean fineAccuracy=false;
@@ -32,7 +32,6 @@ public final class LocationHelper implements ILocationHelper {
 	public LocationHelper(Context context){
 		listeners=new ArrayList<ISimpleLocationListener>();
 		application=context.getApplicationContext();
-		this.userEnabledSetting=true;
 		this.currentListener=new LocationListener(){
 			@Override public void onLocationChanged(Location loc){
 				if(loc!=null){

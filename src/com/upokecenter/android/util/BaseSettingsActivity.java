@@ -27,8 +27,8 @@ implements OnSharedPreferenceChangeListener {
 			AppManager.initialize(this);
 		}
 		super.onCreate(inst);
-		addPreferencesFromResource(getPreferenceResource());
-		SharedPreferences prefs=getPreferenceScreen().getSharedPreferences();
+		this.addPreferencesFromResource(getPreferenceResource());
+		SharedPreferences prefs=this.getPreferenceScreen().getSharedPreferences();
 		for(String key : prefs.getAll().keySet()){
 			updatePreference(prefs,findPreference(key));
 		}
@@ -43,16 +43,14 @@ implements OnSharedPreferenceChangeListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		getPreferenceScreen().getSharedPreferences()
-		.registerOnSharedPreferenceChangeListener(this);
+		this.getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void onPause() {
 		super.onPause();
-		getPreferenceScreen().getSharedPreferences()
-		.unregisterOnSharedPreferenceChangeListener(this);
+		this.getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 	}
 
 }

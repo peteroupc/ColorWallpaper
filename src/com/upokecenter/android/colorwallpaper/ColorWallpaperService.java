@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+import android.app.WallpaperManager;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
@@ -157,7 +158,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 
 			@Override
 			public Bundle onCommand(String action, int x, int y, int z, Bundle extras, boolean resultRequested){
-				if("android.wallpaper.tap".equals(action)){
+				if(WallpaperManager.COMMAND_TAP.equals(action)){
 					if(prefs.getBoolean("reacttotaps",true)){
 						for(int i=0;i<8;i++){
 							int background=Color.HSVToColor(new float[]{

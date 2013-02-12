@@ -6,17 +6,19 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.DialogUtility;
 import com.upokecenter.android.util.IChoiceListener;
 
 public class LauncherActivity extends Activity {
-	
+
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
 		DialogUtility.clean();
 	}
+
 	
 	@Override public void onCreate(Bundle b){
 		super.onCreate(b);
