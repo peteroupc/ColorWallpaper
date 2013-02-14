@@ -1,7 +1,6 @@
 package com.upokecenter.android.net;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -25,8 +24,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 
 import com.upokecenter.android.util.AppManager;
-import com.upokecenter.android.util.DebugUtility;
-import com.upokecenter.util.Reflection;
 
 public class DownloadHelper {
 
@@ -68,28 +65,6 @@ public class DownloadHelper {
 			return ConnectivityManager.TYPE_WIFI;
 		}
 		return 0;
-	}
-
-	public static boolean enableHttpCache(long sizeInBytes){
-		try {
-			return enableHttpCacheInternal(sizeInBytes);
-		} catch(IOException e){
-			DebugUtility.log("Can't enable cache with size %d",sizeInBytes);
-			return false;
-		}
-	}
-
-	private static boolean enableHttpCacheInternal(long sizeInBytes) throws IOException{
-		Context ctx=AppManager.getApplication();
-		File cacheDir=CacheHelper.getCachePath(ctx,"httpcache");
-		if(cacheDir==null)return false;
-		cacheDir.mkdirs();
-		// HttpResponseCache added in ICS
-		Class<?> clazz=Reflection.getClassForName("android.net.http.HttpResponseCache");
-		if(clazz==null)return false;
-		Object o=null;
-		o=Reflection.invokeStaticByName(clazz,"install",null,cacheDir,sizeInBytes);
-		return (o!=null);
 	}
 	public void removeAllConnectionListeners(){
 		for(int i=0;i<connListeners.size();i++){
@@ -219,6 +194,7 @@ public class DownloadHelper {
 				((IDownloadEventHandler<T>)callback).onConnecting(url);
 			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 			connection.setDoInput(true);
+			connection.setChunkedStreamingMode(0);
 			connection.setReadTimeout(readTimeout);
 			connection.setConnectTimeout(connectTimeout);
 			connection.setRequestMethod("GET");
