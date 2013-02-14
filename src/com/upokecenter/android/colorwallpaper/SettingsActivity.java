@@ -47,5 +47,4 @@ public class SettingsActivity extends BaseSettingsActivity {
 	    super.onCreateOptionsMenu(menu);
 	    return true;
 	}
-
 }

@@ -35,6 +35,7 @@ implements OnSharedPreferenceChangeListener {
 	}
 
 	@SuppressWarnings("deprecation")
+	@Override
 	public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 		updatePreference(prefs,findPreference(key));
 	}

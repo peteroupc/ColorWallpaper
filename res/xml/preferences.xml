@@ -4,7 +4,7 @@
     xmlns:custom="http://schemas.android.com/apk/res/com.upokecenter.android.colorwallpaper"
      >
    <PreferenceCategory
-       android:title="@string/category_settings">
+       android:title="@string/category_daymonth">
 <CheckBoxPreference
         android:key="usedaycycle"
         android:title="@string/usedaycycle"
@@ -33,6 +33,9 @@
         custom:maxValue="359"
         custom:label="@string/xdegrees"
         android:defaultValue="0" />
+</PreferenceCategory>
+   <PreferenceCategory
+       android:title="@string/category_othersettings">
 <CheckBoxPreference
         android:key="reacttotaps"
         android:title="@string/reacttotaps"
@@ -42,6 +45,16 @@
         android:key="fadeinboxes"
         android:title="@string/fadeinboxes"
         android:defaultValue="true" />
+<CheckBoxPreference
+        android:key="usemodelbg"
+        android:title="@string/usemodelbg"
+        android:defaultValue="true" />
+<com.upokecenter.android.util.ChoosePicturePreference
+        android:key="picture"
+        android:dependency="usemodelbg"
+        android:title="@string/picture" 
+        android:dialogTitle="@string/choosepicture"
+                android:summary="@string/summary_picture" />
 <com.upokecenter.android.util.ContinuousValuePreference
         android:key="drawspeedfps"
         android:summary="@string/summary_drawspeedfps"
@@ -50,7 +63,7 @@
         android:dialogTitle="@string/drawspeedfps"
         custom:minValue="1"
         custom:maxValue="60"
-        custom:label="Up to %d FPS"
+        custom:label="@string/summary_drawspeedfps"
         android:defaultValue="10" />
 </PreferenceCategory>
    <PreferenceCategory

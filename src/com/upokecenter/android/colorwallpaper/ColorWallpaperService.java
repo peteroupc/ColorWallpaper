@@ -1,5 +1,7 @@
 package com.upokecenter.android.colorwallpaper;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -9,12 +11,14 @@ import android.app.WallpaperManager;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
@@ -29,7 +33,7 @@ import com.upokecenter.util.SunriseSunset;
 
 public class ColorWallpaperService extends BaseWallpaperService {
 
-
+	
 	@Override
 	public Engine onCreateEngine() {
 		AppManager.initialize(this);
@@ -45,6 +49,31 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			Bitmap scratchBitmap=null;
 			Canvas scratchCanvas=null;
 			int onDayStateCount=0;
+			/*
+			 * NOTE: The OnSharedPreferenceChangeListener must be
+			 * an instance variable, not a local variable, because
+			 * the SharedPreferences object stores listeners as weak
+			 * references when it registers them, so when they are
+			 * local variables, they become eligible for garbage 
+			 * collection once the listeners leave the
+			 * scope of the method.
+			 */
+			OnSharedPreferenceChangeListener listener=null;
+
+			public Bitmap cacheImageFile(String file, 
+					int desiredWidth, int desiredHeight) throws IOException {
+				BitmapFactory.Options options=new BitmapFactory.Options();
+				options.inJustDecodeBounds=true;
+				BitmapFactory.decodeFile(file.toString(),options);
+				if(options.outWidth>desiredWidth || options.outHeight>desiredHeight){
+					float sampleX=options.outWidth*1.0f/desiredWidth;
+					float sampleY=options.outHeight*1.0f/desiredHeight;
+					options.inSampleSize=Math.round(Math.max(sampleX,sampleY));
+				}
+				options.inJustDecodeBounds=false;
+				Bitmap bitmap=BitmapFactory.decodeFile(file.toString(),options);
+				return bitmap;
+			}
 
 
 			class ColorTransition {
@@ -214,10 +243,15 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			@Override public void onDestroy(){
 				if(helper!=null){
 					helper.removeAllLocationListeners();
+					helper=null;
 				}
 				if(scratchBitmap!=null){
 					scratchBitmap.recycle();
 					scratchBitmap=null;
+				}
+				if(modelBitmap!=null){
+					modelBitmap.recycle();
+					modelBitmap=null;
 				}
 				super.onDestroy();
 			}
@@ -238,6 +272,41 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				}				
 			}
 
+			Bitmap modelBitmap=null;
+			
+			private void loadPictureBitmap(){
+				if(!prefs.getBoolean("usemodelbg",false)){
+					if(modelBitmap!=null){
+						modelBitmap.recycle();
+						modelBitmap=null;
+					}
+					return;
+				}
+				new AsyncTask<String,Void,Bitmap>(){
+
+					@Override
+					protected Bitmap doInBackground(String... arg0) {
+						if(arg0[0]==null || !new File(arg0[0]).isFile())
+							return null;
+						try {
+							Bitmap b=cacheImageFile(arg0[0],200,200);
+							return b;
+						} catch (IOException e) {
+							e.printStackTrace();
+							return null;
+						}
+
+					}
+					
+					@Override
+					protected void onPostExecute(Bitmap b){
+						if(b!=null && modelBitmap!=null)
+							modelBitmap.recycle();
+						modelBitmap=b;
+					}
+				}.execute(prefs.getString("picture",null));
+			}
+			
 			@Override public void onCreate(SurfaceHolder surface){
 				super.onCreate(surface);
 				prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
@@ -251,15 +320,19 @@ public class ColorWallpaperService extends BaseWallpaperService {
 						updateDayState();
 					}
 				});
-				prefs.registerOnSharedPreferenceChangeListener(
-						new OnSharedPreferenceChangeListener(){
-							@Override
-							public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-								if(key=="uselocation"){
-									helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
-								}
-							}
-						});
+				listener=new OnSharedPreferenceChangeListener(){
+					@Override
+					public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+						if(key.equals("uselocation")){
+							helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
+						}
+						if(key.equals("picture") || key.equals("usemodelbg")){
+							loadPictureBitmap();
+						}
+					}
+				};
+				prefs.registerOnSharedPreferenceChangeListener(listener);
+				loadPictureBitmap();
 			}
 			private void drawColor2(int color, int x, int y){
 				if(!this.isVisible())return;
@@ -290,6 +363,31 @@ public class ColorWallpaperService extends BaseWallpaperService {
 						Math.max(0,y1-y2),
 						Math.min(this.width,x1+x2),
 						Math.min(this.height,y1+y2));
+				if(modelBitmap!=null){
+					int w=modelBitmap.getWidth();
+					int h=modelBitmap.getHeight();
+					float xmid=r.left+(r.right-r.left)/2;
+					float ymid=r.top+(r.bottom-r.top)/2;
+					int bitmapx=(int)Math.round(xmid*w*1.0f/Math.max(1,this.width));
+					int bitmapy=(int)Math.round(ymid*h*1.0f/Math.max(1,this.height));
+					if(bitmapx>=w)bitmapx=w-1;
+					if(bitmapy>=h)bitmapy=h-1;
+					if(bitmapx<0)bitmapx=0;
+					if(bitmapy<0)bitmapy=0;
+					color=modelBitmap.getPixel(bitmapx,bitmapy);
+					float[] hsv=new float[3];
+					Color.colorToHSV(color, hsv);
+					hsv[0]-=10f;
+					hsv[0]+=random.nextInt(20);
+					hsv[1]-=0.05f;
+					hsv[1]+=(random.nextInt(100)*0.10f/100f);
+					hsv[2]-=0.05f;
+					hsv[2]+=(random.nextInt(100)*0.10f/100f);
+					hsv[2]-=(30-getValueOffset())*0.01f;
+					hsv[1]=Math.max(0,Math.min(1,hsv[1]));
+					hsv[2]=Math.max(0,Math.min(1,hsv[2]));
+					color=Color.HSVToColor(hsv);
+				}
 				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}

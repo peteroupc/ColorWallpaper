@@ -109,6 +109,13 @@ public class AlertDialogPreference extends Preference {
 			throw new IllegalStateException();
 	}
 
+	private String defaultFormat(){
+		Class<?> type=getDialogUpdater().getType();
+		if(type.equals(Integer.TYPE) || type.equals(Long.TYPE) || type.equals(Float.TYPE))
+			return "%d";
+		else
+			return "%s";
+	}
 
 	private void persist(Object value){
 		Class<?> type=getDialogUpdater().getType();
@@ -188,8 +195,8 @@ public class AlertDialogPreference extends Preference {
 					if(callChangeListener(newValue)){
 						persist(newValue);
 						if(!getDialogUpdater().getType().equals(Void.TYPE))
-							setSummary(String.format(settingSummary==null ? "%d" : settingSummary,
-									getPersistedInt(0)));
+							setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,
+									getPersisted(null)));
 					}
 					alertDialog=null;
 				}});
@@ -223,13 +230,13 @@ public class AlertDialogPreference extends Preference {
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
 					this.getPersisted(defaultValue));
 			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
+				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,this.getPersisted(defaultValue)));
 		} else {
 			persist(defaultValue);
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
 					defaultValue);
 			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
+				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,this.getPersisted(defaultValue)));
 		}
 	}
 

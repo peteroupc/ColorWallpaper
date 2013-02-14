@@ -6,6 +6,7 @@ bin/
 tmp/
 assets/
 gen/
+*.log
 lint.xml
 *.tmp
 *.bak
