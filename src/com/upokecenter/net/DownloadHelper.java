@@ -785,14 +785,17 @@ public final class DownloadHelper {
 					if(cacheInfoFile.isFile()){
 						try {
 							ICacheControl cc=CacheControl.fromFile(cacheInfoFile);
-							fresh=(cc==null) ? false : cc.isFresh();
-							
-							if(!urlString.equals(cc.getUri())){
-								// Wrong URI
-								continue;
-							}
-							if(!"get".equals(cc.getRequestMethod())){
+							if(cc==null){
 								fresh=false;
+							} else {
+								fresh=(cc==null) ? false : cc.isFresh();
+								if(!urlString.equals(cc.getUri())){
+									// Wrong URI
+									continue;
+								}
+								if(!"get".equals(cc.getRequestMethod())){
+									fresh=false;
+								}
 							}
 							headers=(cc==null) ? new NullHeaders(cacheFile.length()) : cc.getHeaders(cacheFile.length());
 						} catch (IOException e) {

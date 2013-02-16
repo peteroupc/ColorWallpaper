@@ -77,6 +77,11 @@ public final class StorageUtility {
 			if(storagedir.isDirectory()){
 				return getUniqueFileName(storagedir);
 			}
+			// Use the external storage directory itself as a last resort
+			storagedir=Environment.getExternalStorageDirectory();
+			if(storagedir.isDirectory()){
+				return getUniqueFileName(storagedir);
+			}
 		}
 		return null;
 	}

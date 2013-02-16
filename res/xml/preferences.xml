@@ -54,7 +54,8 @@
         android:dependency="usemodelbg"
         android:title="@string/picture" 
         android:dialogTitle="@string/choosepicture"
-                android:summary="@string/summary_picture" />
+        android:summary="@string/summary_picture"
+        android:defaultValue="" />
 <com.upokecenter.android.util.ContinuousValuePreference
         android:key="drawspeedfps"
         android:summary="@string/summary_drawspeedfps"

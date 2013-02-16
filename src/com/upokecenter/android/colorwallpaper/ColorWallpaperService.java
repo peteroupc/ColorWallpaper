@@ -30,7 +30,6 @@ import com.upokecenter.android.location.ISimpleLocationListener;
 import com.upokecenter.android.location.LocationHelper;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.BitmapUtility;
-import com.upokecenter.android.util.DebugUtility;
 import com.upokecenter.android.wallpaper.BaseWallpaperService;
 import com.upokecenter.util.SunriseSunset;
 
@@ -57,17 +56,40 @@ public class ColorWallpaperService extends BaseWallpaperService {
 	public Engine onCreateEngine() {
 		AppManager.initialize(this);
 		return new Engine(){
-			ILocationHelper helper=null;
+			ILocationHelper locationHelper=null;
 			final int DIPCONVERT=30;
 			int width=0;
 			int height=0;
-			SharedPreferences prefs=null;
+			Preferences prefs=null;
 			Random random=null;
 			Location currentLocation=null;
 			SunriseSunset.DayState dayState;
 			Bitmap scratchBitmap=null;
 			Canvas scratchCanvas=null;
 			int onDayStateCount=0;
+			class Preferences {
+				public boolean usedaycycle;
+				public boolean uselocation;
+				public boolean usemonthcycle;
+				public int colorhue;
+				public boolean reacttotaps;
+				public boolean fadeinboxes;
+				public boolean usemodelbg;
+				public String picture;
+				public int drawspeedfps;
+				public void setPreferences(SharedPreferences prefs){
+					this.usedaycycle=prefs.getBoolean("usedaycycle",true);
+					this.uselocation=prefs.getBoolean("uselocation",false);
+					this.usemonthcycle=prefs.getBoolean("usemonthcycle",true);
+					this.colorhue=prefs.getInt("colorhue",0);
+					this.reacttotaps=prefs.getBoolean("reacttotaps",true);
+					this.fadeinboxes=prefs.getBoolean("fadeinboxes",true);
+					this.usemodelbg=prefs.getBoolean("usemodelbg",true);
+					this.picture=prefs.getString("picture","");
+					this.drawspeedfps=prefs.getInt("drawspeedfps",10);
+				}
+			}
+
 			/*
 			 * NOTE: The OnSharedPreferenceChangeListener must be
 			 * an instance variable, not a local variable, because
@@ -158,28 +180,27 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				}
 				updateColorTransitions();
 			}
-			
+
 			@Override
 			public int getDelay(){
-				int fps=prefs.getInt("drawspeedfps",10);
+				int fps=prefs.drawspeedfps;
 				if(fps!=0){
 					return 1000/Math.max(fps,1);
 				}
-				String speed=prefs.getString("drawspeed","medium");
-				if("slow".equals(speed))return 80;
-				if("medium".equals(speed))return 40;
 				return 20;
 			}
-			
+
 			@Override
 			protected void onFrame() {
 				int boxcount=8;
+				float hue=getCurrentHue();
+				int value=getValueOffset();
 				for(int i=0;i<boxcount;i++){
-						drawColor(Color.HSVToColor(new float[]{
-								getCurrentHue()-10f+random.nextInt(20),
-								((10+random.nextInt(11))/20.0f),
-								Math.min(1.0f,((getValueOffset()+random.nextInt(21))/40.0f))
-						}));							
+					drawColor(Color.HSVToColor(new float[]{
+							hue-10f+random.nextInt(20),
+							((10+random.nextInt(11))/20.0f),
+							Math.min(1.0f,((value+random.nextInt(21))/40.0f))
+					}));							
 				}
 				if(onDayStateCount==0){
 					updateDayState();
@@ -191,7 +212,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			@Override
 			public Bundle onCommand(String action, int x, int y, int z, Bundle extras, boolean resultRequested){
 				if(WallpaperManager.COMMAND_TAP.equals(action)){
-					if(prefs.getBoolean("reacttotaps",true)){
+					if(prefs.reacttotaps){
 						for(int i=0;i<8;i++){
 							int background=Color.HSVToColor(new float[]{
 									random.nextInt(360),
@@ -207,7 +228,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 
 
 			private float getCurrentHue(){
-				if(prefs.getBoolean("usemonthcycle",true)){
+				if(prefs.usemonthcycle){
 					Calendar cal=Calendar.getInstance();
 					long time=new Date().getTime();
 					cal.setTimeInMillis(time);
@@ -223,13 +244,13 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					currentHue*=360.0;
 					return currentHue;
 				} else {
-					return prefs.getInt("colorhue",0);	
+					return prefs.colorhue;	
 				}
 			}
 
 			private int getValueOffset(){
 				int valueOffset=20;
-				if(prefs.getBoolean("usedaycycle",true)){
+				if(prefs.usedaycycle){
 					if(dayState==SunriseSunset.DayState.Night)
 						valueOffset=5;
 					if(dayState==SunriseSunset.DayState.NightToDay)
@@ -243,9 +264,9 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			}
 
 			@Override public void onDestroy(){
-				if(helper!=null){
-					helper.removeAllLocationListeners();
-					helper=null;
+				if(locationHelper!=null){
+					locationHelper.removeAllLocationListeners();
+					locationHelper=null;
 				}
 				if(scratchBitmap!=null){
 					scratchBitmap.recycle();
@@ -257,7 +278,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				}
 				super.onDestroy();
 			}
-			
+
 			private void updateDayState(){
 				if(currentLocation!=null){
 					dayState=SunriseSunset.getCurrentDayState(
@@ -275,9 +296,9 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			}
 
 			Bitmap modelBitmap=null;
-			
+
 			private void loadPictureBitmap(){
-				if(!prefs.getBoolean("usemodelbg",false)){
+				if(!prefs.usemodelbg){
 					if(modelBitmap!=null){
 						modelBitmap.recycle();
 						modelBitmap=null;
@@ -298,24 +319,27 @@ public class ColorWallpaperService extends BaseWallpaperService {
 						}
 
 					}
-					
+
 					@Override
 					protected void onPostExecute(Bitmap b){
 						if(b!=null && modelBitmap!=null)
 							modelBitmap.recycle();
 						modelBitmap=b;
 					}
-				}.execute(prefs.getString("picture",null));
+				}.execute(prefs.picture);
 			}
-			
+
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			@Override public void onCreate(SurfaceHolder surface){
 				super.onCreate(surface);
-				prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
+				SharedPreferences p=PreferenceManager.getDefaultSharedPreferences(
+						AppManager.getApplication());
+				prefs=new Preferences();
+				prefs.setPreferences(p);
 				random=new Random();
-				helper=new LocationHelper(AppManager.getApplication());
-				helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
-				helper.addLocationListener(new ISimpleLocationListener(){
+				locationHelper=new LocationHelper(AppManager.getApplication());
+				locationHelper.setLocationEnabled(prefs.uselocation);
+				locationHelper.addLocationListener(new ISimpleLocationListener(){
 					@Override
 					public void onLocation(Location loc) {
 						currentLocation=loc;
@@ -324,16 +348,17 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				});
 				listener=new OnSharedPreferenceChangeListener(){
 					@Override
-					public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+					public void onSharedPreferenceChanged(SharedPreferences p, String key) {
+						prefs.setPreferences(p);
 						if(key.equals("uselocation")){
-							helper.setLocationEnabled(prefs.getBoolean("uselocation",false));
+							locationHelper.setLocationEnabled(prefs.uselocation);
 						}
 						if(key.equals("picture") || key.equals("usemodelbg")){
 							loadPictureBitmap();
 						}
 					}
 				};
-				prefs.registerOnSharedPreferenceChangeListener(listener);
+				p.registerOnSharedPreferenceChangeListener(listener);
 				loadPictureBitmap();
 			}
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
@@ -350,7 +375,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 						Math.max(0,y1-y2),
 						Math.min(this.width,x1+x2),
 						Math.min(this.height,y1+y2));
-				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
+				int frames=(prefs.fadeinboxes) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
@@ -392,7 +417,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					hsv[2]=Math.max(0,Math.min(1,hsv[2]));
 					color=Color.HSVToColor(hsv);
 				}
-				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
+				int frames=(prefs.fadeinboxes) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}
 		};

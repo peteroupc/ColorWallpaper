@@ -44,6 +44,8 @@ public class GetContentActivity extends Activity {
 			}
 			thisActivity.startActivityForResult(chooser,0xabcd);
 		}
+		
+		
 	}
 
 	private static final class MediaStoreAsyncTask extends

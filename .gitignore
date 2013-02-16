@@ -5,8 +5,10 @@
 bin/
 tmp/
 assets/
+reports/
 gen/
 *.log
+.pmd
 lint.xml
 *.tmp
 *.bak

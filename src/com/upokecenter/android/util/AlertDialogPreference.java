@@ -99,8 +99,10 @@ public class AlertDialogPreference extends Preference {
 		Class<?> type=getDialogUpdater().getType();
 		if(type.equals(Integer.TYPE) || type.equals(Void.TYPE))
 			return a.getInteger(index,0);
-		else if(type.equals(Long.TYPE))
-			return a.getInteger(index,0); // Unfortunately there's no getLong in TypedArray
+		else if(type.equals(Long.TYPE)){
+			String s=a.getString(index);
+			return (long)Long.parseLong((s!=null) ? s : ""); // Unfortunately there's no getLong in TypedArray
+		}
 		else if(type.equals(Float.TYPE))
 			return a.getFloat(index,0f);
 		else if(type.equals(String.class))
