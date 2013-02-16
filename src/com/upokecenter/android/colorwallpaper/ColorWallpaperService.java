@@ -30,6 +30,7 @@ import com.upokecenter.android.location.ISimpleLocationListener;
 import com.upokecenter.android.location.LocationHelper;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.BitmapUtility;
+import com.upokecenter.android.util.DebugUtility;
 import com.upokecenter.android.wallpaper.BaseWallpaperService;
 import com.upokecenter.util.SunriseSunset;
 
@@ -293,7 +294,6 @@ public class ColorWallpaperService extends BaseWallpaperService {
 							Bitmap b=cacheImageFile(arg0[0],200,200);
 							return b;
 						} catch (IOException e) {
-							e.printStackTrace();
 							return null;
 						}
 
@@ -387,7 +387,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					hsv[1]+=(random.nextInt(100)*0.10f/100f);
 					hsv[2]-=0.05f;
 					hsv[2]+=(random.nextInt(100)*0.10f/100f);
-					hsv[2]-=(30-getValueOffset())*0.01f;
+					hsv[2]=hsv[2]*(1.0f-((30-getValueOffset())*0.02f));
 					hsv[1]=Math.max(0,Math.min(1,hsv[1]));
 					hsv[2]=Math.max(0,Math.min(1,hsv[2]));
 					color=Color.HSVToColor(hsv);

@@ -6,6 +6,7 @@ import java.net.ResponseCache;
 import java.util.Date;
 
 import com.upokecenter.util.Reflection;
+import com.upokecenter.util.StreamUtility;
 
 public final class LightweightCacheService {
 
@@ -76,7 +77,15 @@ public final class LightweightCacheService {
 					if(ResponseCache.getDefault()==null){
 						enableHttpCache(size);
 						DownloadHelper.pruneCache(filePublicPath,size);						
-						DownloadHelper.pruneCache(filePrivatePath,size);						
+						DownloadHelper.pruneCache(filePrivatePath,size);
+						// Create ".nomedia" files to prevent the files
+						// in the caches from being scanned by Android
+						try {
+							StreamUtility.stringToFile("",new File(filePublicPath,".nomedia"));
+						} catch (IOException e) {}
+						try {
+							StreamUtility.stringToFile("",new File(filePrivatePath,".nomedia"));
+						} catch (IOException e) {}
 					}
 					nanoSleep(INTERVAL*1000000L);
 				}

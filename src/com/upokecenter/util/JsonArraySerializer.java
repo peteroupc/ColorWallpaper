@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 
-public class JsonArraySerializer implements IStreamObjectSerializer<JSONArray> {
+public final class JsonArraySerializer implements IStreamObjectSerializer<JSONArray> {
 
 
 	@Override

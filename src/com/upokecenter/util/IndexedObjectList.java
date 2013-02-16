@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.upokecenter.android.util.DebugUtility;
 
-public class IndexedObjectList<T> {
+public final class IndexedObjectList<T> {
 	private List<T> strongrefs=new ArrayList<T>();
 	private List<WeakReference<T>> weakrefs=new ArrayList<WeakReference<T>>();
 	private Object syncRoot=new Object();

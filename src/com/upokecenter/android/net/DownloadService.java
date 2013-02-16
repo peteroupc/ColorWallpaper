@@ -24,13 +24,13 @@ public final class DownloadService extends IntentService {
 	private static final IndexedObjectList<IOnFinishedListener<Object>> finobjects=new IndexedObjectList<IOnFinishedListener<Object>>();
 	
 	
-	public static int sendObject(IStreamObjectSerializer<Object> o) {
+	private static int sendObject(IStreamObjectSerializer<Object> o) {
 		return serobjects.sendObject(o);
 	}
-	public static int sendObject(IProcessResponseListener<Object> o) {
+	private static int sendObject(IProcessResponseListener<Object> o) {
 		return cbobjects.sendObject(o);
 	}
-	public static int sendObject(IOnFinishedListener<Object> o) {
+	private static int sendObject(IOnFinishedListener<Object> o) {
 		return finobjects.sendObject(o);
 	}
 	private static Handler handler=null;

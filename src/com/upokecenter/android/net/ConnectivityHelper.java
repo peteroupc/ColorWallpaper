@@ -12,7 +12,7 @@ import android.net.NetworkInfo;
 
 import com.upokecenter.android.util.AppManager;
 
-public class ConnectivityHelper {
+public final class ConnectivityHelper {
 
 	Context application;
 

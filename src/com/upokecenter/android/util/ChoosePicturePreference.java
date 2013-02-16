@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 import com.upokecenter.util.IBoundAction;
 
 
-public class ChoosePicturePreference extends Preference {
+public final class ChoosePicturePreference extends Preference {
 
 	int callback=-1;
 
@@ -68,7 +68,7 @@ public class ChoosePicturePreference extends Preference {
 			}
 		}
 
-		private void showDialog() {
+		private void showAction() {
 			Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
 			intent.setClass(getContext(),GetContentActivity.class);
 			this.callback=GetContentActivity.getCallbacks().registerAction(
@@ -94,7 +94,7 @@ public class ChoosePicturePreference extends Preference {
 		@Override
 		protected void onClick() {
 			super.onClick();
-			showDialog();
+			showAction();
 		}
 
 		@Override

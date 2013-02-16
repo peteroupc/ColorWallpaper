@@ -311,7 +311,7 @@ public final class DownloadHelper {
 			}
 		}
 
-		static class CacheControlSerializer implements IStreamObjectSerializer<CacheControl>{
+		private static class CacheControlSerializer implements IStreamObjectSerializer<CacheControl>{
 			@Override
 			public CacheControl readObjectFromStream(InputStream stream) throws IOException {
 				try {
@@ -699,16 +699,16 @@ public final class DownloadHelper {
 				return new CacheRequest(){
 					@Override
 					public void abort() {
-						DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
-								crinfo.trueCacheInfoFile);
+						//DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
+							//	crinfo.trueCacheInfoFile);
 						crinfo.trueCachedFile.delete();
 						crinfo.trueCacheInfoFile.delete();
 					}
 
 					@Override
 					public OutputStream getBody() throws IOException {
-						DebugUtility.log("getting request body %s %s",crinfo.trueCachedFile,
-						crinfo.trueCacheInfoFile);
+						//DebugUtility.log("getting request body %s %s",crinfo.trueCachedFile,
+						//crinfo.trueCacheInfoFile);
 						try {
 						CacheControl.toFile(cc,crinfo.trueCacheInfoFile);
 						return new FileOutputStream(crinfo.trueCachedFile);

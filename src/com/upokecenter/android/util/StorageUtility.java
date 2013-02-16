@@ -61,13 +61,22 @@ public final class StorageUtility {
 	}
 
 	public static File getCameraFolderUniqueFileName(){
-		if(AppManager.getApplication().checkCallingOrSelfPermission(
-				Manifest.permission.WRITE_EXTERNAL_STORAGE)==
-				PackageManager.PERMISSION_GRANTED &&
-				Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
 			File storagedir=new File(Environment.getExternalStorageDirectory(),"DCIM");
-			storagedir=new File(storagedir,"Camera");
-			return getUniqueFileName(storagedir);
+			// For the camera app to save images, the directory must
+			// exist: it won't make the directory for us.
+			// So check if it exists
+			File subdir=new File(storagedir,"Camera");
+			if(subdir.isDirectory()){
+				return getUniqueFileName(subdir);				
+			}
+			if(storagedir.isDirectory()){
+				return getUniqueFileName(storagedir);
+			}
+			storagedir=new File(Environment.getExternalStorageDirectory(),"Pictures");
+			if(storagedir.isDirectory()){
+				return getUniqueFileName(storagedir);
+			}
 		}
 		return null;
 	}
