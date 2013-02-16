@@ -9,6 +9,6 @@ public final class DebugUtility {
 		Log.i("CWS",String.format(format,items));
 	}
 	public static void log(Object item){
-		Log.i("CWS",String.format("%s",item));
+		Log.i("CWS",String.format("%s",item==null ? "null" : item.toString()));
 	}
 }

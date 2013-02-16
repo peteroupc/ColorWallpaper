@@ -1,4 +1,4 @@
-package com.upokecenter.util;
+package com.upokecenter.net;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 
 
-public final class HeaderParser {
+final class HeaderParser {
 		
 	private HeaderParser(){}
 	public static String formatDate(long date){

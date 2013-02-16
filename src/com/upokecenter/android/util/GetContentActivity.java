@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 import android.Manifest;
@@ -25,6 +26,113 @@ import android.widget.Toast;
 import com.upokecenter.util.ActionList;
 
 public class GetContentActivity extends Activity { 
+	private static final class CameraIntentAsyncTask extends
+			AsyncTask<Void, Void, File> {
+		private final GetContentActivity thisActivity;
+		private final Intent chooser;
+
+		private CameraIntentAsyncTask(GetContentActivity thisActivity,
+				Intent chooser) {
+			this.thisActivity = thisActivity;
+			this.chooser = chooser;
+		}
+
+		@Override
+		protected File doInBackground(Void... arg0) {
+			return StorageUtility.getCameraFolderUniqueFileName();
+		}
+
+		@Override protected void onPostExecute(File param){
+			if(param!=null){
+				Intent cameraIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);							
+				cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(param));
+				thisActivity.externalFile=param.toString();
+				chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{cameraIntent});
+			}
+			thisActivity.startActivityForResult(chooser,0xabcd);
+		}
+	}
+
+	private static final class MediaStoreAsyncTask extends
+			AsyncTask<Uri, Void, String> {
+		private final GetContentActivity thisInstance;
+
+		private MediaStoreAsyncTask(GetContentActivity thisInstance) {
+			this.thisInstance = thisInstance;
+		}
+
+		@Override
+		protected String doInBackground(Uri... params) {
+			Cursor cursor=thisInstance.getContentResolver().query(params[0], 
+					new String[]{"_data"},null,null,null);
+			if(cursor==null)return null;
+			try {
+				cursor.moveToFirst();
+				return cursor.getString(0);
+			} finally {
+				cursor.close();
+			}
+		}
+
+		@Override public void onPostExecute(String path){
+			if(path==null){
+				Toast.makeText(thisInstance,
+						AppManager.getStringResourceValue("imagenotsaved",
+								"We couldn't get the image."),Toast.LENGTH_SHORT).show();	
+			}
+			if(thisInstance.callback>=0){
+				GetContentActivity.callbacks.triggerActionOnce(thisInstance.callback,path);
+			}
+			thisInstance.finish();						
+		}
+	}
+
+	private static final class BitmapWriteAsyncTask extends
+			AsyncTask<Bitmap, Void, File> {
+		private final GetContentActivity thisInstance;
+		private final Bitmap bitmap;
+
+		private BitmapWriteAsyncTask(GetContentActivity thisInstance,
+				Bitmap bitmap) {
+			this.thisInstance = thisInstance;
+			this.bitmap = bitmap;
+		}
+
+		@Override
+		protected File doInBackground(Bitmap... arg0) {
+			File file=StorageUtility.getCameraFolderUniqueFileName();
+			if(file==null)return null;
+			OutputStream fs;
+			new File(file.getParent()).mkdirs();
+			try {
+				fs = new FileOutputStream(file);
+				try {
+					return bitmap.compress(Bitmap.CompressFormat.PNG,0,fs) ? file : null;
+				} finally {
+					if(fs!=null)
+						try { fs.close(); } catch (IOException e) {}
+				}
+			} catch (FileNotFoundException e) {
+				return null;
+			}
+		}
+
+		@Override
+		public void onPostExecute(File param){
+			Toast.makeText(thisInstance,
+					(param!=null) ? AppManager.getStringResourceValue("imagesaved",
+							"Camera image saved.") :
+								AppManager.getStringResourceValue("imagenotsaved",
+										"We couldn't get the image."),
+										Toast.LENGTH_SHORT).show();
+			if(thisInstance.callback>=0){
+				GetContentActivity.callbacks.triggerActionOnce(
+						thisInstance.callback,param==null ? null : param.toString());
+			}
+			thisInstance.finish();
+		}
+	}
+
 	private Activity getThis(){ return this; }
 
 	private static ActionList<String> callbacks=new ActionList<String>();
@@ -35,109 +143,42 @@ public class GetContentActivity extends Activity {
 
 	int callback=-1;
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		if(requestCode == 0xabcd){
-			if(data!=null && data.getExtras()!=null){
-				Parcelable parcel=data.getExtras().getParcelable("data");
-				if(this.checkCallingOrSelfPermission(
-						Manifest.permission.WRITE_EXTERNAL_STORAGE)==
-						PackageManager.PERMISSION_GRANTED){
-					if(parcel!=null && parcel instanceof Bitmap){
-						final Bitmap bitmap=(Bitmap)parcel;
-						if(Environment.getExternalStorageState().equals(
-								Environment.MEDIA_MOUNTED)){
-							// A bitmap is stored
-							File storagedir=new File(Environment.getExternalStorageDirectory(),"DCIM");
-							storagedir=new File(storagedir,"Camera");
-							final File storage=storagedir;
-							new AsyncTask<Bitmap,Void,File>(){
+	String externalFile=null;
 
-								@Override
-								protected File doInBackground(Bitmap... arg0) {
-									Calendar calendar=Calendar.getInstance();
-									int i=0;
-									storage.mkdirs();
-									while(true){
-										String string=String.format(Locale.US,
-												"%04d-%02d-%02d--%02d-%02d-%02d-%d.png",
-												calendar.get(Calendar.YEAR),
-												calendar.get(Calendar.MONTH)+1,
-												calendar.get(Calendar.DAY_OF_MONTH),
-												calendar.get(Calendar.HOUR_OF_DAY),
-												calendar.get(Calendar.MINUTE),
-												calendar.get(Calendar.SECOND),i
-												);
-										File file=new File(storage,string);
-										if(!file.exists()){
-											OutputStream fs;
-											try {
-												fs = new FileOutputStream(file);
-												try {
-													return bitmap.compress(Bitmap.CompressFormat.PNG,0,fs) ? file : null;
-												} finally {
-													if(fs!=null)
-														try { fs.close(); } catch (IOException e) {}
-												}
-											} catch (FileNotFoundException e) {
-												return null;
-											}
-										}
-										i++;
-									}
-								}
-								@Override
-								public void onPostExecute(File param){
-									if(param!=null){
-										Toast.makeText(GetContentActivity.this,
-												AppManager.getStringResourceValue("imagesaved",
-														"Camera image saved."),Toast.LENGTH_SHORT).show();
-									} else {
-										Toast.makeText(GetContentActivity.this,
-												AppManager.getStringResourceValue("imagenotsaved",
-														"Camera image couldn't be saved."),Toast.LENGTH_SHORT).show();
-									}
-									if(callback>=0){
-										callbacks.triggerActionOnce(callback,param==null ? null : param.toString());
-									}
-									finish();
-								}
-							}.execute(bitmap);
-							return;
-						}
-					}
-					if(resultCode==RESULT_OK){
-						Toast.makeText(GetContentActivity.this,
-								AppManager.getStringResourceValue("imagenotsaved",
-										"Camera image couldn't be saved."),Toast.LENGTH_SHORT).show();
-						if(callback>=0){
-							callbacks.triggerActionOnce(callback,(String)null);
-						}
-						finish();
-						return;
-					}
+
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		super.onActivityResult(requestCode, resultCode, intent);
+		if(requestCode == 0xabcd){
+			if(resultCode==RESULT_OK && intent==null && externalFile!=null){
+				if(callback>=0){
+					callbacks.triggerActionOnce(callback,externalFile);
 				}
-			} else if(data!=null && data.getData()!=null){
-				new AsyncTask<Uri,Void,String>(){
-					@Override
-					protected String doInBackground(Uri... params) {
-						Cursor cursor=getContentResolver().query(params[0], 
-								new String[]{"_data"},null,null,null);
-						try {
-							cursor.moveToFirst();
-							return cursor.getString(0);
-						} finally {
-							cursor.close();
-						}
+				finish();
+				return;
+			}
+			if(intent!=null && intent.getExtras()!=null){
+				Parcelable parcel=intent.getExtras().getParcelable("data");
+				if(parcel!=null && parcel instanceof Bitmap){
+					final Bitmap bitmap=(Bitmap)parcel;
+					final GetContentActivity thisInstance=this;
+					new BitmapWriteAsyncTask(thisInstance, bitmap).execute(bitmap);
+					return;
+				}
+				if(resultCode==RESULT_OK && parcel==null){
+					Toast.makeText(AppManager.getApplication(),
+							AppManager.getStringResourceValue("imagenotsaved",
+									"We couldn't get the image."),Toast.LENGTH_SHORT).show();
+					if(callback>=0){
+						callbacks.triggerActionOnce(callback,(String)null);
 					}
-					@Override public void onPostExecute(String path){
-						if(callback>=0){
-							callbacks.triggerActionOnce(callback,path);
-						}
-						finish();						
-					}
-				}.execute(data.getData());
+					finish();
+					return;
+				}
+			} else if(intent!=null && intent.getData()!=null){
+				final GetContentActivity thisInstance=this;
+				new MediaStoreAsyncTask(thisInstance).execute(intent.getData());
 				return;
 			}
 			if(callback>=0){
@@ -147,9 +188,18 @@ public class GetContentActivity extends Activity {
 		}
 	}
 
+	@Override public void onSaveInstanceState(Bundle b){
+		b.putInt("callback",callback);
+		DebugUtility.log("saving callback %d",callback);
+	}
+
 	@Override
 	public void onCreate(Bundle b){
 		super.onCreate(b);
+		if(b!=null){
+			callback=b.getInt("callback");
+			DebugUtility.log("restoring callback %d",callback);
+		}
 		if(b==null){
 			AppManager.initialize(getThis());
 			Intent intent=getThis().getIntent();
@@ -157,19 +207,16 @@ public class GetContentActivity extends Activity {
 				Intent myIntent=new Intent(intent);
 				callback=intent.getIntExtra("com.upokecenter.android.extra.CALLBACK",-1);
 				myIntent.setType(intent.getType()!=null ? intent.getType() : "image/*");
-				Intent chooser=Intent.createChooser(myIntent, 
+				final Intent chooser=Intent.createChooser(myIntent, 
 						intent.getStringExtra(Intent.EXTRA_TITLE));
-				if(this.checkCallingOrSelfPermission(
-						Manifest.permission.WRITE_EXTERNAL_STORAGE)==
-						PackageManager.PERMISSION_GRANTED &&
-						Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) &&
-						"image/*".equals(myIntent.getType())){
+				if("image/*".equals(myIntent.getType())){
 					// Add camera intent only if we can write to external storage
 					// and the image media type is specified
-					chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{ 
-							new Intent(MediaStore.ACTION_IMAGE_CAPTURE)});
+					final GetContentActivity thisActivity=this;
+					new CameraIntentAsyncTask(thisActivity, chooser).execute();
+				} else {
+					startActivityForResult(chooser,0xabcd);					
 				}
-				startActivityForResult(chooser,0xabcd);
 			}
 		}
 	}

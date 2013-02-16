@@ -35,8 +35,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
              <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+                <category android:name="android.intent.category.PREFERENCE" />
        </intent-filter>
         </activity>
+        <service
+            android:exported="false"
+            android:name="com.upokecenter.android.net.DownloadService" />
+        <service
+            android:exported="false"
+            android:name="com.upokecenter.android.net.CacheService" />
         <activity
             android:exported="false"
             android:name="com.upokecenter.android.util.ShareActivity"

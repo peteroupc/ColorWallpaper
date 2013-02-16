@@ -8,7 +8,7 @@ import android.os.Parcelable;
 import android.preference.Preference;
 import android.util.AttributeSet;
 
-import com.upokecenter.util.IAction;
+import com.upokecenter.util.IBoundAction;
 
 
 public class ChoosePicturePreference extends Preference {
@@ -32,6 +32,7 @@ public class ChoosePicturePreference extends Preference {
 			if(isState){
 				Bundle b=((PreferenceState)state).getBundle();
 				this.callback=b.getInt("callback");
+				GetContentActivity.getCallbacks().rebindAction(this.callback,this);
 			}
 		}
 
@@ -70,13 +71,16 @@ public class ChoosePicturePreference extends Preference {
 		private void showDialog() {
 			Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
 			intent.setClass(getContext(),GetContentActivity.class);
-			this.callback=GetContentActivity.getCallbacks().registerAction(new IAction<String>(){
+			this.callback=GetContentActivity.getCallbacks().registerAction(
+					this,new IBoundAction<String>(){
 				@Override
-				public void action(String... parameters) {
-					if(parameters[0]!=null && callChangeListener(parameters[0])){
-						persist(parameters[0]);
-						setSummary(String.format(settingSummary==null ? "%s" : settingSummary,
-								getPersisted(null)));
+				public void action(Object obj, String... parameters) {
+					ChoosePicturePreference pref=(ChoosePicturePreference)obj;
+					if(parameters[0]!=null && pref.callChangeListener(parameters[0])){
+						pref.persist(parameters[0]);
+						pref.setSummary(String.format(
+								pref.settingSummary==null ? "" : pref.settingSummary,
+								pref.getPersisted(null)));
 					}
 				}
 			});
@@ -96,10 +100,10 @@ public class ChoosePicturePreference extends Preference {
 		@Override
 		protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 			if (restorePersistedValue) {
-				setSummary(String.format(settingSummary==null ? "%s" : settingSummary,this.getPersisted(defaultValue)));
+				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
 			} else {
 				persist(defaultValue);
-				setSummary(String.format(settingSummary==null ? "%s" : settingSummary,this.getPersisted(defaultValue)));
+				setSummary(String.format(settingSummary==null ? "" : settingSummary,this.getPersisted(defaultValue)));
 			}
 		}
 

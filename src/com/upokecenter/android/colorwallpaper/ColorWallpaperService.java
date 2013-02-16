@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+import android.annotation.TargetApi;
 import android.app.WallpaperManager;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -19,6 +20,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
@@ -31,9 +33,25 @@ import com.upokecenter.android.util.BitmapUtility;
 import com.upokecenter.android.wallpaper.BaseWallpaperService;
 import com.upokecenter.util.SunriseSunset;
 
+@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 public class ColorWallpaperService extends BaseWallpaperService {
 
-	
+	public static Bitmap cacheImageFile(String file, 
+			int desiredWidth, int desiredHeight) throws IOException {
+		BitmapFactory.Options options=new BitmapFactory.Options();
+		options.inJustDecodeBounds=true;
+		BitmapFactory.decodeFile(file.toString(),options);
+		if(options.outWidth>desiredWidth || options.outHeight>desiredHeight){
+			float sampleX=options.outWidth*1.0f/desiredWidth;
+			float sampleY=options.outHeight*1.0f/desiredHeight;
+			options.inSampleSize=Math.round(Math.max(sampleX,sampleY));
+		}
+		options.inJustDecodeBounds=false;
+		Bitmap bitmap=BitmapFactory.decodeFile(file.toString(),options);
+		return bitmap;
+	}
+
+	@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 	@Override
 	public Engine onCreateEngine() {
 		AppManager.initialize(this);
@@ -59,22 +77,6 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			 * scope of the method.
 			 */
 			OnSharedPreferenceChangeListener listener=null;
-
-			public Bitmap cacheImageFile(String file, 
-					int desiredWidth, int desiredHeight) throws IOException {
-				BitmapFactory.Options options=new BitmapFactory.Options();
-				options.inJustDecodeBounds=true;
-				BitmapFactory.decodeFile(file.toString(),options);
-				if(options.outWidth>desiredWidth || options.outHeight>desiredHeight){
-					float sampleX=options.outWidth*1.0f/desiredWidth;
-					float sampleY=options.outHeight*1.0f/desiredHeight;
-					options.inSampleSize=Math.round(Math.max(sampleX,sampleY));
-				}
-				options.inJustDecodeBounds=false;
-				Bitmap bitmap=BitmapFactory.decodeFile(file.toString(),options);
-				return bitmap;
-			}
-
 
 			class ColorTransition {
 				Rect rect;
@@ -204,7 +206,6 @@ public class ColorWallpaperService extends BaseWallpaperService {
 
 
 			private float getCurrentHue(){
-				SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
 				if(prefs.getBoolean("usemonthcycle",true)){
 					Calendar cal=Calendar.getInstance();
 					long time=new Date().getTime();
@@ -307,6 +308,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				}.execute(prefs.getString("picture",null));
 			}
 			
+			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			@Override public void onCreate(SurfaceHolder surface){
 				super.onCreate(surface);
 				prefs=PreferenceManager.getDefaultSharedPreferences(AppManager.getApplication());
@@ -334,6 +336,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				prefs.registerOnSharedPreferenceChangeListener(listener);
 				loadPictureBitmap();
 			}
+			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor2(int color, int x, int y){
 				if(!this.isVisible())return;
 				int widthlevel=1024/DIPCONVERT;
@@ -350,6 +353,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				int frames=(prefs.getBoolean("fadeinboxes",true)) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}
+			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor(int color){
 				if(!this.isVisible())return;
 				int widthlevel=1024/DIPCONVERT;

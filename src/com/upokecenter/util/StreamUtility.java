@@ -15,17 +15,22 @@ import java.io.Writer;
 public final class StreamUtility {
 	private StreamUtility(){}
 	
-	public static void inputStreamToFile(InputStream stream, File file)
+	public static void copyStream(InputStream stream, OutputStream output)
 			throws IOException {
-		FileOutputStream output=null;
-		try {
-			output=new FileOutputStream(file);
 			byte[] buffer=new byte[8192];
 			while(true){
 				int count=stream.read(buffer,0,buffer.length);
 				if(count<0)break;
 				output.write(buffer,0,count);
 			}
+	}
+
+	public static void inputStreamToFile(InputStream stream, File file)
+			throws IOException {
+		FileOutputStream output=null;
+		try {
+			output=new FileOutputStream(file);
+			copyStream(stream,output);
 		} finally {
 			if(output!=null)output.close();
 		}

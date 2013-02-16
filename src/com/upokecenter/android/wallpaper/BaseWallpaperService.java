@@ -7,15 +7,19 @@
  */
 package com.upokecenter.android.wallpaper;
 
+import android.annotation.TargetApi;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
 
+@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 public abstract class BaseWallpaperService extends WallpaperService
 {
+	@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 	protected abstract class Engine extends WallpaperService.Engine
 	{
 		protected int getDelay(){
@@ -34,6 +38,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 		private boolean visible = false;
 		private long time = 0;
 
+		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 		@Override
 		public void onDestroy()
 		{
@@ -71,6 +76,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 			nextFrame();
 		}
 
+		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 		@Override
 		public void onSurfaceDestroyed( SurfaceHolder holder )
 		{
@@ -96,6 +102,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 
 		protected abstract void onFrame();
 		
+		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 		protected void nextFrame()
 		{
 			stopRunnable();

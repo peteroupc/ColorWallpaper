@@ -4,45 +4,115 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class for holding tasks that can be referred to by integer index.
- * Useful for communication between two classes when neither class has a
- * direct reference to the other, such as between two Activities or between
- * an Activity and a Preference in Android.
- * 
+ * A class for holding tasks that can be referred to by integer index. 
  */
 public final class ActionList<T> {
 
-	private List<IAction<T>> actions;
+	private List<IBoundAction<T>> actions;
+	private List<Object> boundObjects;
+	private List<T[]> postponeCall;
 	private Object syncRoot=new Object();
 	
 	public ActionList(){
-		actions=new ArrayList<IAction<T>>();
+		actions=new ArrayList<IBoundAction<T>>();
+		boundObjects=new ArrayList<Object>();
+		postponeCall=new ArrayList<T[]>();
 	}
-	
-	public boolean triggerActionOnce(int actionID, T... parameters){
-		IAction<T> action=null;
+
+	public boolean unbindAction(int actionID){
+		//DebugUtility.log("Unbinding action %d",actionID);
+		IBoundAction<T> action=null;
 		if(actionID<0)return false;
 		synchronized(syncRoot){
 			if(actionID>=actions.size())
 				return false;
 			action=actions.get(actionID);
+			if(action==null)
+				return false;
+			boundObjects.set(actionID,null);
+		}
+		return true;		
+	}
+
+	public boolean removeAction(int actionID){
+		//DebugUtility.log("Removing action %d",actionID);
+		if(actionID<0)return false;
+		synchronized(syncRoot){
+			if(actionID>=actions.size())
+				return false;
 			actions.set(actionID,null);
+			boundObjects.set(actionID,null);
+			postponeCall.set(actionID,null);
+		}
+		return true;		
+	}
+
+	public boolean rebindAction(int actionID, Object boundObject){
+		//DebugUtility.log("Rebinding action %d",actionID);
+		IBoundAction<T> action=null;
+		if(actionID<0 || boundObject==null)return false;
+		T[] postponed=null;
+		synchronized(syncRoot){
+			if(actionID>=actions.size())
+				return false;
+			action=actions.get(actionID);
+			if(action==null)
+				return false;
+			boundObjects.set(actionID,boundObject);
+			postponed=postponeCall.get(actionID);
+			if(postponed!=null){
+				actions.set(actionID,null);
+				postponeCall.set(actionID,null);
+				boundObjects.set(actionID,null);
+			}
+		}
+		if(postponed!=null){
+			//DebugUtility.log("Calling postponed action %d",actionID);
+			action.action(boundObject,postponed);
+		}
+		return true;		
+	}
+	
+	public boolean triggerActionOnce(int actionID, T... parameters){
+		//DebugUtility.log("Triggering action %d",actionID);
+		IBoundAction<T> action=null;
+		if(actionID<0)return false;
+		Object boundObject=null;
+		synchronized(syncRoot){
+			if(actionID>=actions.size())
+				return false;
+			boundObject=boundObjects.get(actionID);
+			if(boundObject==null){
+				//DebugUtility.log("Postponing action %d",actionID);
+				postponeCall.set(actionID,parameters);
+				return false;
+			}
+			action=actions.get(actionID);
+			actions.set(actionID,null);
+			boundObjects.set(actionID,null);
+			postponeCall.set(actionID,null);
 		}
 		if(action==null)return false;
-		action.action(parameters);
+		action.action(boundObject,parameters);
 		return true;
 	}
 	
-	public int registerAction(IAction<T> action){
+	public int registerAction(Object boundObject, IBoundAction<T> action){
 		synchronized(syncRoot){
 			for(int i=0;i<actions.size();i++){
 				if(actions.get(i)==null){
+					//DebugUtility.log("Adding action %d",i);
 					actions.set(i,action);
+					boundObjects.set(i,boundObject);
+					postponeCall.set(i,null);
 					return i;
 				}
 			}
 			int ret=actions.size();
+			//DebugUtility.log("Adding action %d",ret);
 			actions.add(action);
+			boundObjects.add(boundObject);
+			postponeCall.add(null);
 			return ret;
 		}
 	}

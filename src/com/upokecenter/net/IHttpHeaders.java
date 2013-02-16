@@ -1,4 +1,4 @@
-package com.upokecenter.android.net;
+package com.upokecenter.net;
 
 
 import java.util.List;
