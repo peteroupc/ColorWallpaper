@@ -22,7 +22,7 @@
         android:title="@string/usemonthcycle"
         android:summary="@string/summary_usemonthcycle"
         android:defaultValue="true" />
-<com.upokecenter.android.util.ContinuousValuePreference
+<com.upokecenter.android.ui.ContinuousValuePreference
         android:key="colorhue"
         android:dependency="usemonthcycle"
         android:dialogLayout="@layout/huedialoglayout"
@@ -49,14 +49,14 @@
         android:key="usemodelbg"
         android:title="@string/usemodelbg"
         android:defaultValue="true" />
-<com.upokecenter.android.util.ChoosePicturePreference
+<com.upokecenter.android.ui.ChoosePicturePreference
         android:key="picture"
         android:dependency="usemodelbg"
         android:title="@string/picture" 
         android:dialogTitle="@string/choosepicture"
         android:summary="@string/summary_picture"
         android:defaultValue="" />
-<com.upokecenter.android.util.ContinuousValuePreference
+<com.upokecenter.android.ui.ContinuousValuePreference
         android:key="drawspeedfps"
         android:summary="@string/summary_drawspeedfps"
         android:dialogLayout="@layout/huedialoglayout"
@@ -69,17 +69,17 @@
 </PreferenceCategory>
    <PreferenceCategory
        android:title="@string/category_thisprogram">
-<com.upokecenter.android.util.IntentPreference 
+<com.upokecenter.android.ui.IntentPreference 
     android:title="@string/donate" >
     <intent android:action="android.intent.action.VIEW"
         android:data="http://www.upokecenter.com/d"/>
-</com.upokecenter.android.util.IntentPreference>
-<com.upokecenter.android.util.IntentPreference
+</com.upokecenter.android.ui.IntentPreference>
+<com.upokecenter.android.ui.IntentPreference
      android:title="@string/share" >
     <intent android:action="android.intent.action.SEND"
             android:mimeType="text/plain"
             android:targetPackage="com.upokecenter.android.colorwallpaper"
-            android:targetClass="com.upokecenter.android.util.ShareActivity">
+            android:targetClass="com.upokecenter.android.ui.ShareActivity">
         <extra android:name="android.intent.extra.TITLE"
             android:value="@string/sharevia"></extra>
         <extra android:name="android.intent.extra.TEXT"
@@ -87,14 +87,14 @@
         <extra android:name="android.intent.extra.SUBJECT"
             android:value="@string/sharesubject"></extra>
         </intent>
-</com.upokecenter.android.util.IntentPreference>
-<com.upokecenter.android.util.IntentPreference 
+</com.upokecenter.android.ui.IntentPreference>
+<com.upokecenter.android.ui.IntentPreference 
     android:title="@string/homepage" >
     <intent android:action="android.intent.action.VIEW"
         android:data="http://www.upokecenter.com/projects/colorwallpaper"/>
-</com.upokecenter.android.util.IntentPreference>
+</com.upokecenter.android.ui.IntentPreference>
     
-<com.upokecenter.android.util.AlertDialogPreference
+<com.upokecenter.android.ui.AlertDialogPreference
     android:key="about"
      android:title="@string/about"
      android:dialogMessage="@string/aboutmessage"

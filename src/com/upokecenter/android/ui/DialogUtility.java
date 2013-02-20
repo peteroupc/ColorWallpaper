@@ -1,4 +1,4 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;

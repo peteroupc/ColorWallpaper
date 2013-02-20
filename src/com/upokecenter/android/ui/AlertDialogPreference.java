@@ -1,4 +1,4 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
 
 import java.lang.ref.WeakReference;
 
@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.Preference;
 import android.util.AttributeSet;
-
 
 public class AlertDialogPreference extends Preference {
 
@@ -225,7 +224,7 @@ public class AlertDialogPreference extends Preference {
 		super.onClick();
 		showDialog();
 	}
-
+	
 	@Override
 	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		if (restorePersistedValue) {

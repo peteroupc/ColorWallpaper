@@ -21,6 +21,7 @@ public final class AppManager {
 	private AppManager(){}
 	private static Object syncRoot=new Object();
 	private static Context application=null;
+	private static boolean initialized=false;
 	
 	public static int getResource(String type, String name){
 		String packageName=getApplication().getApplicationInfo().packageName;
@@ -112,6 +113,13 @@ public final class AppManager {
 	public static void initialize(Context context){
 		Context c=null;
 		synchronized(syncRoot){
+			if(!initialized){
+				initialized=true;
+			} else {
+				return;
+			}
+		}
+		synchronized(syncRoot){
 			application=context.getApplicationContext();
 			c=application;
 		}
@@ -141,8 +149,7 @@ public final class AppManager {
 				Object built=Reflection.invokeByName(builder,"build",null);
 				Reflection.invokeStaticByName(classStrictMode,"setThreadPolicy",null,built);
 				builder=Reflection.construct(classVmPolicyBuilder);
-				builder=Reflection.invokeByName(builder,"detectLeakedSqlLiteObjects",builder);
-				builder=Reflection.invokeByName(builder,"detectLeakedClosableObjects",builder);
+				builder=Reflection.invokeByName(builder,"detectAll",builder);
 				builder=Reflection.invokeByName(builder,"penaltyLog",builder);
 				builder=Reflection.invokeByName(builder,"penaltyDeath",builder);
 				built=Reflection.invokeByName(builder,"build",null);

@@ -2,10 +2,15 @@ package com.upokecenter.android.colorwallpaper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import android.annotation.TargetApi;
 import android.app.WallpaperManager;
@@ -23,34 +28,77 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Xml;
 import android.view.SurfaceHolder;
 
 import com.upokecenter.android.location.ILocationHelper;
 import com.upokecenter.android.location.ISimpleLocationListener;
 import com.upokecenter.android.location.LocationHelper;
+import com.upokecenter.android.net.DownloadService;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.BitmapUtility;
 import com.upokecenter.android.wallpaper.BaseWallpaperService;
+import com.upokecenter.net.IHttpHeaders;
+import com.upokecenter.net.IOnFinishedListener;
+import com.upokecenter.net.IProcessResponseListener;
 import com.upokecenter.util.SunriseSunset;
+import com.upokecenter.util.XmlHelper;
+
 
 @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 public class ColorWallpaperService extends BaseWallpaperService {
 
 	public static Bitmap cacheImageFile(String file, 
 			int desiredWidth, int desiredHeight) throws IOException {
-		BitmapFactory.Options options=new BitmapFactory.Options();
-		options.inJustDecodeBounds=true;
-		BitmapFactory.decodeFile(file.toString(),options);
-		if(options.outWidth>desiredWidth || options.outHeight>desiredHeight){
-			float sampleX=options.outWidth*1.0f/desiredWidth;
-			float sampleY=options.outHeight*1.0f/desiredHeight;
-			options.inSampleSize=Math.round(Math.max(sampleX,sampleY));
+		BitmapFactory.Options o=new BitmapFactory.Options();
+		o.inJustDecodeBounds=true;
+		BitmapFactory.decodeFile(file.toString(),o);
+		if(o.outWidth>desiredWidth || o.outHeight>desiredHeight){
+			float sampleX=o.outWidth*1.0f/desiredWidth;
+			float sampleY=o.outHeight*1.0f/desiredHeight;
+			o.inSampleSize=Math.round(Math.min(sampleX,sampleY));
 		}
-		options.inJustDecodeBounds=false;
-		Bitmap bitmap=BitmapFactory.decodeFile(file.toString(),options);
+		o.inJustDecodeBounds=false;
+		Bitmap bitmap=BitmapFactory.decodeFile(file.toString(),o);
 		return bitmap;
 	}
 
+
+	public Bitmap cacheImage(InputStream stream, int desiredWidth, int desiredHeight) throws IOException {
+		stream.mark(0x10000);
+		BitmapFactory.Options o=new BitmapFactory.Options();
+		o.inJustDecodeBounds=true;
+		BitmapFactory.decodeStream(stream,null,o);
+		stream.reset();
+		if(o.outWidth>desiredWidth || o.outHeight>desiredHeight){
+			float sampleX=o.outWidth*1.0f/desiredWidth;
+			float sampleY=o.outHeight*1.0f/desiredHeight;
+			o.inSampleSize=Math.round(Math.min(sampleX,sampleY));
+		}
+		o.inJustDecodeBounds=false;
+		Bitmap bitmap=BitmapFactory.decodeStream(stream,null,o);
+		return bitmap;
+	}
+
+	public static List<String> parseRssFeedImages(InputStream stream) throws IOException {
+		XmlPullParser parser=Xml.newPullParser();
+		try {
+			List<String> ret=new ArrayList<String>();
+			parser.setInput(stream,null);
+			while(XmlHelper.moveToElement(parser,null,"item")){
+				int depth=XmlHelper.GetDepth(parser);
+				while(XmlHelper.findChildToDepth(parser,depth,null,null)){
+					if(XmlHelper.IsElement(parser,"http://search.yahoo.com/mrss/","content")){
+						String urlname=parser.getAttributeValue(null,"url");
+						ret.add(urlname);
+					}
+				}
+			}
+			return ret;
+		} catch (XmlPullParserException e) {
+			throw (IOException)new IOException().initCause(e);
+		}
+	}
 	@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 	@Override
 	public Engine onCreateEngine() {
@@ -298,35 +346,62 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			Bitmap modelBitmap=null;
 
 			private void loadPictureBitmap(){
-				if(!prefs.usemodelbg){
+				if(!prefs.usemodelbg || prefs.picture==null){
 					if(modelBitmap!=null){
 						modelBitmap.recycle();
 						modelBitmap=null;
 					}
 					return;
 				}
-				new AsyncTask<String,Void,Bitmap>(){
+				if(prefs.picture.startsWith("http://") ||
+						prefs.picture.startsWith("https://")){
+					DownloadService.sendRequest(AppManager.getApplication(),prefs.picture,
+							new IProcessResponseListener<Object>(){
 
-					@Override
-					protected Bitmap doInBackground(String... arg0) {
-						if(arg0[0]==null || !new File(arg0[0]).isFile())
-							return null;
-						try {
-							Bitmap b=cacheImageFile(arg0[0],200,200);
-							return b;
-						} catch (IOException e) {
-							return null;
+						@Override
+						public Object processResponse(String url,
+								InputStream stream, IHttpHeaders headers)
+										throws IOException {
+							return cacheImage(stream,200,200);
 						}
 
-					}
+					},new IOnFinishedListener<Object>(){
 
-					@Override
-					protected void onPostExecute(Bitmap b){
-						if(b!=null && modelBitmap!=null)
-							modelBitmap.recycle();
-						modelBitmap=b;
-					}
-				}.execute(prefs.picture);
+						@Override
+						public void onFinished(String url, Object value,
+								IOException exception) {
+							if(modelBitmap!=null)
+								modelBitmap.recycle();
+							modelBitmap=(value==null) ? null : (Bitmap)value;							
+						}
+
+					});
+				} else {
+					new AsyncTask<String,Void,Bitmap>(){
+
+						@Override
+						protected Bitmap doInBackground(String... arg0) {
+							String arg=arg0[0];
+							if(arg==null)return null;
+							if(!new File(arg).isFile())
+								return null;
+							try {
+								Bitmap b=cacheImageFile(arg,200,200);
+								return b;
+							} catch (IOException e) {
+								return null;
+							}
+
+						}
+
+						@Override
+						protected void onPostExecute(Bitmap b){
+							if(modelBitmap!=null)
+								modelBitmap.recycle();
+							modelBitmap=b;
+						}
+					}.execute(prefs.picture);
+				}
 			}
 
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)

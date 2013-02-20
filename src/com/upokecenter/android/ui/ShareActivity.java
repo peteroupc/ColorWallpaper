@@ -1,4 +1,4 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.upokecenter.android.util.AppManager;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -160,14 +162,6 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 		String packageName=intent.getPackage();
 		String intentText=intent.getStringExtra(Intent.EXTRA_TEXT);
 		if(packageName!=null){
-			if(packageName.equals("com.google.zxing.client.android")){
-				// Put the URL on the subject for Barcode Scanner
-				Matcher matcher=Pattern.compile("(geo\\:|[a-z\\-]+\\:\\/\\/)\\S+").matcher(intentText);
-				if(matcher.find()){
-					intentText=matcher.group();
-					intent.putExtra(Intent.EXTRA_SUBJECT, intentText);
-				}
-			}
 			if(packageName.equals("com.facebook.katana")){
 				// Extract URL from message for Facebook
 				Matcher matcher=Pattern.compile("(geo\\:|[a-z\\-]+\\:\\/\\/)\\S+").matcher(intentText);

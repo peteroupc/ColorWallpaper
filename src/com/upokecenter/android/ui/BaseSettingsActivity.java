@@ -1,4 +1,6 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
+
+import com.upokecenter.android.util.AppManager;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;

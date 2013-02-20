@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IHttpHeaders {
+	public String getUrl();
 	public String getRequestMethod();
 	public String getHeaderField(String name);
 	public String getHeaderField(int name);

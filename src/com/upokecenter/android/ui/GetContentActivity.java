@@ -1,4 +1,4 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +16,8 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
+import com.upokecenter.android.util.AppManager;
+import com.upokecenter.android.util.StorageUtility;
 import com.upokecenter.util.ActionList;
 
 public class GetContentActivity extends Activity { 
@@ -185,7 +187,7 @@ public class GetContentActivity extends Activity {
 
 	@Override public void onSaveInstanceState(Bundle b){
 		b.putInt("callback",callback);
-		DebugUtility.log("saving callback %d",callback);
+		//DebugUtility.log("saving callback %d",callback);
 	}
 
 	@Override
@@ -193,7 +195,7 @@ public class GetContentActivity extends Activity {
 		super.onCreate(b);
 		if(b!=null){
 			callback=b.getInt("callback");
-			DebugUtility.log("restoring callback %d",callback);
+			//DebugUtility.log("restoring callback %d",callback);
 		}
 		if(b==null){
 			AppManager.initialize(getThis());
@@ -205,7 +207,7 @@ public class GetContentActivity extends Activity {
 				final Intent chooser=Intent.createChooser(myIntent, 
 						intent.getStringExtra(Intent.EXTRA_TITLE));
 				if("image/*".equals(myIntent.getType())){
-					// Add camera intent only if we can write to external storage
+					// Add camera intent only if external storage is mounted
 					// and the image media type is specified
 					final GetContentActivity thisActivity=this;
 					new CameraIntentAsyncTask(thisActivity, chooser).execute();

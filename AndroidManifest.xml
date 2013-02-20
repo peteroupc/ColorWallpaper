@@ -7,63 +7,68 @@
     <uses-sdk
         android:minSdkVersion="7"
         android:targetSdkVersion="17" />
+
     <uses-feature android:name="android.software.live_wallpaper" />
-	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-	<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<application
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
         android:allowBackup="true"
         android:icon="@drawable/wallpaperthumbnail"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-    
-         <activity
+        <activity
             android:name=".LauncherActivity"
             android:label="@string/app_name"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-       <category android:name="android.intent.category.DEFAULT" />
-             <category android:name="android.intent.category.LAUNCHER" />
-       </intent-filter>
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-             <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+                <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+
                 <category android:name="android.intent.category.PREFERENCE" />
-       </intent-filter>
+            </intent-filter>
         </activity>
+
         <service
-            android:exported="false"
-            android:name="com.upokecenter.android.net.DownloadService" />
-        <service
-            android:exported="false"
-            android:name="com.upokecenter.android.net.CacheService" />
+            android:name="com.upokecenter.android.net.DownloadService"
+            android:exported="false" />
         <activity
+            android:name="com.upokecenter.android.ui.ShareActivity"
             android:exported="false"
-            android:name="com.upokecenter.android.util.ShareActivity"
             android:label="@string/app_name"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
+            android:name="com.upokecenter.android.ui.GetContentActivity"
             android:exported="false"
-            android:name="com.upokecenter.android.util.GetContentActivity"
             android:label="@string/app_name"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <service
-            android:permission="android.permission.BIND_WALLPAPER"
-            android:label="@string/app_name"
             android:name="com.upokecenter.android.colorwallpaper.ColorWallpaperService"
-            >
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_WALLPAPER" >
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
-            <meta-data android:name="android.service.wallpaper" android:resource="@xml/colorwallpaper" />
-            </service>
-         
+
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/colorwallpaper" />
+        </service>
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
 
 import android.content.Context;
 import android.content.Intent;

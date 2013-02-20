@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.upokecenter.android.util.BaseSettingsActivity;
-import com.upokecenter.android.util.ShareActivity;
+import com.upokecenter.android.ui.BaseSettingsActivity;
+import com.upokecenter.android.ui.ShareActivity;
 import com.upokecenter.util.Reflection;
 
 

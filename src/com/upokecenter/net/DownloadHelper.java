@@ -13,6 +13,7 @@ import java.net.CacheResponse;
 import java.net.HttpURLConnection;
 import java.net.ResponseCache;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -137,7 +138,7 @@ public final class DownloadHelper {
 			this.headers=new ArrayList<String>();
 		}
 
-		public static ICacheControl getCacheControl(String uri, IHttpHeaders headers, long requestTime){
+		public static ICacheControl getCacheControl(IHttpHeaders headers, long requestTime){
 			CacheControl cc=new CacheControl();
 			boolean proxyRevalidate=false;
 			int sMaxAge=0;
@@ -146,7 +147,7 @@ public final class DownloadHelper {
 			boolean noCache=false;
 			long expires=0;
 			boolean hasExpires=false;
-			cc.uri=uri;
+			cc.uri=headers.getUrl();
 			String cacheControl=headers.getHeaderField("cache-control");
 			if(cacheControl!=null){
 				int index=0;
@@ -416,6 +417,7 @@ public final class DownloadHelper {
 				list.add(Long.toString(this.age));
 				list.add("content-length");
 				list.add(Long.toString(length));
+				//DebugUtility.log("aged=%s",list);
 				this.cc=cc;
 			}
 
@@ -425,12 +427,12 @@ public final class DownloadHelper {
 			}
 			@Override
 			public String getHeaderField(String name) {
-				if(name==null)return cc.headers.get(0);
+				if(name==null)return this.list.get(0);
 				name=name.toLowerCase(Locale.US);
-				for(int i=1;i<cc.headers.size();i+=2){
-					String key=cc.headers.get(i);
+				for(int i=1;i<this.list.size();i+=2){
+					String key=this.list.get(i);
 					if(name.equals(key)){
-						return cc.headers.get(i+1);
+						return this.list.get(i+1);
 					}
 				}
 				return null;
@@ -438,16 +440,16 @@ public final class DownloadHelper {
 			@Override
 			public String getHeaderField(int index) {
 				index=(index)*2+1+1;
-				if(index<0 || index>=cc.headers.size())
+				if(index<0 || index>=this.list.size())
 					return null;
-				return cc.headers.get(index+1);
+				return this.list.get(index+1);
 			}
 			@Override
 			public String getHeaderFieldKey(int index) {
 				index=(index)*2+1;
-				if(index<0 || index>=cc.headers.size())
+				if(index<0 || index>=this.list.size())
 					return null;
-				return cc.headers.get(index);
+				return this.list.get(index);
 			}
 			@Override
 			public int getResponseCode() {
@@ -460,17 +462,26 @@ public final class DownloadHelper {
 			@Override
 			public Map<String, List<String>> getHeaderFields() {
 				Map<String, List<String>> map=new HashMap<String, List<String>>();
-				map.put(null,Arrays.asList(new String[]{cc.headers.get(0)}));
-				for(int i=1;i<cc.headers.size();i++){
-					String key=cc.headers.get(i);
-					List<String> list=map.get(key);
-					if(list==null){
-						list=new ArrayList<String>();
-						map.put(key,list);
+				map.put(null,Arrays.asList(new String[]{this.list.get(0)}));
+				for(int i=1;i<this.list.size();i+=2){
+					String key=this.list.get(i);
+					List<String> templist=map.get(key);
+					if(templist==null){
+						templist=new ArrayList<String>();
+						map.put(key,templist);
 					}
-					list.add(cc.headers.get(i+1));
+					templist.add(this.list.get(i+1));
+				}
+				// Make lists unmodifiable
+				for(String key : new ArrayList<String>(map.keySet())){
+					map.put(key,Collections.unmodifiableList(map.get(key)));
 				}
 				return Collections.unmodifiableMap(map);
+			}
+
+			@Override
+			public String getUrl() {
+				return cc.uri;
 			}
 		}
 
@@ -481,6 +492,99 @@ public final class DownloadHelper {
 		@Override
 		public String getUri() {
 			return this.uri;
+		}
+	}
+
+	private static class HttpHeadersFromMap implements IHttpHeaders {
+
+		Map<String,List<String>> map;
+		List<String> list;
+		String requestMethod;
+		String urlString;
+
+		public HttpHeadersFromMap(String urlString, String requestMethod, Map<String,List<String>> map){
+			this.map=map;
+			this.urlString=urlString;
+			this.requestMethod=requestMethod;
+			this.list=new ArrayList<String>();
+			ArrayList<String> keyset=new ArrayList<String>();
+			for(String s : this.map.keySet()){
+				if(s==null){
+					// Add status line (also has the side
+					// effect that it will appear first in the list)
+					List<String> v=this.map.get(s);
+					if(v!=null && v.size()>0){
+						this.list.add(v.get(0));
+					} else {
+						this.list.add("HTTP/1.1 200 OK");
+					}
+				} else {
+					keyset.add(s);
+				}
+			}
+			Collections.sort(keyset);
+			// Add the remaining headers in sorted order
+			for(String s : keyset){
+				List<String> v=this.map.get(s);
+				if(v!=null && v.size()>0){
+					for(String ss : v){
+						this.list.add(s);
+						this.list.add(ss);
+					}
+				}
+			}
+		}
+
+		@Override
+		public String getRequestMethod() {
+			return requestMethod;
+		}
+
+		@Override
+		public String getHeaderField(String name) {
+			if(name==null)return list.get(0);
+			name=name.toLowerCase(Locale.US);
+			for(int i=1;i<list.size();i+=2){
+				String key=list.get(i);
+				if(name.equals(key)){
+					return list.get(i+1);
+				}
+			}
+			return null;
+		}
+		@Override
+		public String getHeaderField(int index) {
+			index=(index)*2+1+1;
+			if(index<0 || index>=list.size())
+				return null;
+			return list.get(index+1);
+		}
+		@Override
+		public String getHeaderFieldKey(int index) {
+			index=(index)*2+1;
+			if(index<0 || index>=list.size())
+				return null;
+			return list.get(index);
+		}
+		@Override
+		public int getResponseCode() {
+			String status=getHeaderField(null);
+			if(status==null)return -1;
+			return HeaderParser.getResponseCode(status);
+		}
+		@Override
+		public long getHeaderFieldDate(String field, long defaultValue) {
+			return HeaderParser.parseDate(getHeaderField(field),defaultValue);
+		}
+
+		@Override
+		public Map<String, List<String>> getHeaderFields() {
+			return Collections.unmodifiableMap(map);
+		}
+
+		@Override
+		public String getUrl() {
+			return urlString;
 		}
 	}
 
@@ -547,14 +651,21 @@ public final class DownloadHelper {
 				return "";
 		}
 
+		@Override
+		public String getUrl() {
+			return connection.getURL().toString();
+		}
+
 	}
-	private static class NullHeaders implements IHttpHeaders {
+	private static class FileBasedHeaders implements IHttpHeaders {
 
 		long date,length;
+		String urlString;
 
-		public NullHeaders(long length){
+		public FileBasedHeaders(String urlString, long length){
 			this.date=new Date().getTime();
 			this.length=length;
+			this.urlString=urlString;
 		}
 
 		@Override
@@ -602,16 +713,26 @@ public final class DownloadHelper {
 			return defaultValue;
 		}
 
+		private List<String> asReadOnlyList(String[] a){
+			return Collections.unmodifiableList(Arrays.asList(a));
+		}
+
 		@Override
 		public Map<String, List<String>> getHeaderFields() {
 			Map<String, List<String>> map=new HashMap<String, List<String>>();
-			map.put(null,Arrays.asList(new String[]{getHeaderField(null)}));
-			map.put("date",Arrays.asList(new String[]{getHeaderField("date")}));
-			map.put("content-length",Arrays.asList(new String[]{getHeaderField("content-length")}));
+			map.put(null,asReadOnlyList(new String[]{getHeaderField(null)}));
+			map.put("date",asReadOnlyList(new String[]{getHeaderField("date")}));
+			map.put("content-length",asReadOnlyList(new String[]{getHeaderField("content-length")}));
 			return Collections.unmodifiableMap(map);
 		}
 
+		@Override
+		public String getUrl() {
+			return this.urlString;
+		}
+
 	}
+
 
 	private static void recursiveListFiles(File file, List<File> files){
 		for(File f : file.listFiles()){
@@ -664,13 +785,13 @@ public final class DownloadHelper {
 		File trueCachedFile=null;
 		File trueCacheInfoFile=null;
 	}
-	
+
 	public static ResponseCache getLegacyResponseCache(File cachePath){
 		return new LegacyHttpResponseCache(cachePath);
 	}
 
 	private static class LegacyHttpResponseCache extends ResponseCache {
-		
+
 		File cachePath;
 		public LegacyHttpResponseCache(File cachePath){
 			this.cachePath=cachePath;
@@ -691,27 +812,30 @@ public final class DownloadHelper {
 			if(uri==null || connection==null)throw new IllegalArgumentException();
 			if(cachePath==null)return null;
 			boolean isPrivate=(cachePath==null) ? false : cachePath.toString().startsWith("/data/");
-			final ICacheControl cc=CacheControl.getCacheControl(uri.toString(),
+			final ICacheControl cc=CacheControl.getCacheControl(
 					new HttpHeaders(connection),new Date().getTime());
-			final CacheResponseInfo crinfo=getCachedResponse(uri.toString(),this.cachePath,false);
+			DebugUtility.log("CacheRequest put %s -> %s",uri.toString(),
+					connection.getURL().toString());
+			final CacheResponseInfo crinfo=getCachedResponse(
+					connection.getURL().toString(),this.cachePath,false);
 			if(cc!=null && (cc.getCacheability()==2 || (isPrivate && cc.getCacheability()==1)) &&
 					!cc.isNoTransform() && !cc.isNoStore()){
 				return new CacheRequest(){
 					@Override
 					public void abort() {
-						//DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
-							//	crinfo.trueCacheInfoFile);
+						DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
+								crinfo.trueCacheInfoFile);
 						crinfo.trueCachedFile.delete();
 						crinfo.trueCacheInfoFile.delete();
 					}
 
 					@Override
 					public OutputStream getBody() throws IOException {
-						//DebugUtility.log("getting request body %s %s",crinfo.trueCachedFile,
-						//crinfo.trueCacheInfoFile);
+						DebugUtility.log("getting request body %s %s",crinfo.trueCachedFile,
+								crinfo.trueCacheInfoFile);
 						try {
-						CacheControl.toFile(cc,crinfo.trueCacheInfoFile);
-						return new FileOutputStream(crinfo.trueCachedFile);
+							CacheControl.toFile(cc,crinfo.trueCacheInfoFile);
+							return new FileOutputStream(crinfo.trueCachedFile);
 						} catch(IOException e){
 							DebugUtility.log("IOException");
 							e.printStackTrace();
@@ -732,10 +856,6 @@ public final class DownloadHelper {
 		public LegacyHttpCacheResponse(InputStream body, IHttpHeaders headers){
 			this.body=body;
 			this.headers=headers;
-		}
-
-		public IHttpHeaders getHeadersObject(){
-			return headers;
 		}
 
 		@Override
@@ -776,7 +896,7 @@ public final class DownloadHelper {
 				crinfo.trueCacheInfoFile=new File(crinfo.trueCachedFile.toString()+".cache");
 				return crinfo;
 			}
-			DebugUtility.log("%s, getStream=%s",Arrays.asList(cacheFiles),getStream);
+			//DebugUtility.log("%s, getStream=%s",Arrays.asList(cacheFiles),getStream);
 			for(File cacheFile : cacheFiles){
 				if(cacheFile.isFile() && getStream){
 					boolean fresh=false;
@@ -785,6 +905,7 @@ public final class DownloadHelper {
 					if(cacheInfoFile.isFile()){
 						try {
 							ICacheControl cc=CacheControl.fromFile(cacheInfoFile);
+							DebugUtility.log("havecache: %s",cc!=null);
 							if(cc==null){
 								fresh=false;
 							} else {
@@ -793,21 +914,22 @@ public final class DownloadHelper {
 									// Wrong URI
 									continue;
 								}
+								//DebugUtility.log("reqmethod: %s",cc.getRequestMethod());
 								if(!"get".equals(cc.getRequestMethod())){
 									fresh=false;
 								}
 							}
-							headers=(cc==null) ? new NullHeaders(cacheFile.length()) : cc.getHeaders(cacheFile.length());
+							headers=(cc==null) ? new FileBasedHeaders(urlString,cacheFile.length()) : cc.getHeaders(cacheFile.length());
 						} catch (IOException e) {
 							e.printStackTrace();
 							fresh=false;
-							headers=new NullHeaders(cacheFile.length());
+							headers=new FileBasedHeaders(urlString,cacheFile.length());
 						}
 					} else {
 						long maxAgeMillis=24L*3600L*1000L;
 						long timeDiff=Math.abs(cacheFile.lastModified()-(new Date().getTime()));
 						fresh=(timeDiff<=maxAgeMillis);
-						headers=new NullHeaders(cacheFile.length());
+						headers=new FileBasedHeaders(urlString,cacheFile.length());
 					}
 					DebugUtility.log("fresh=%s",fresh);
 					if(!fresh){
@@ -818,13 +940,17 @@ public final class DownloadHelper {
 						trueCacheInfoFile.delete();
 						break;
 					} else {
+						InputStream stream=null;
 						try {
-							crinfo.cr=new LegacyHttpCacheResponse(
-									new BufferedInputStream(new FileInputStream(cacheFile),8192),
+							stream=new BufferedInputStream(new FileInputStream(cacheFile),8192);
+							crinfo.cr=new LegacyHttpCacheResponse(stream,
 									headers);
+							//DebugUtility.log("headerfields: %s",headers.getHeaderFields());
 						} catch (IOException e) {
 							// if we get an exception here, we download again
 							crinfo.cr=null;
+						} finally {
+							if(stream!=null)try { stream.close(); } catch(IOException e){}
 						}
 					}
 				}
@@ -849,102 +975,6 @@ public final class DownloadHelper {
 		return crinfo;
 	}
 
-	public static <T> T downloadUrlWithCache(
-			final String urlString,
-			final File pathForCache,
-			final IStreamObjectSerializer<T> serializer,
-			final IProcessResponseListener<T> callback
-			) throws IOException {
-		if(urlString==null)throw new IllegalArgumentException();
-		final boolean isPrivate=(pathForCache==null) ? false : pathForCache.toString().startsWith("/data/");
-		CacheResponseInfo crinfo=getCachedResponse(urlString, pathForCache,true);
-		if(crinfo.cr!=null){
-			InputStream body=crinfo.cr.getBody();
-			try {
-				if(body!=null && serializer!=null)
-					return serializer.readObjectFromStream(body);
-				else if(body!=null)
-					return (callback==null) ? null : callback.processResponse(urlString,body,
-							crinfo.cr.getHeadersObject());
-			} finally {
-				if(body!=null)body.close();
-			}
-		}
-		final File finalCachedFile=crinfo.trueCachedFile;
-		final File finalCacheInfoFile=crinfo.trueCacheInfoFile;
-		final long requestTime=new Date().getTime();
-		T value=downloadUrl(urlString,
-				new IProcessResponseListener<T>(){
-			@Override
-			public T processResponse(String url,
-					InputStream stream, IHttpHeaders headers)
-							throws IOException {
-				DebugUtility.log("finalCachedFile=%s",finalCachedFile);
-				if(finalCachedFile==null){
-					T value=(callback==null) ? null : callback.processResponse(url,stream,headers);
-					if(callback==null && ResponseCache.getDefault()!=null){
-						//Read all of the stream; otherwise the response
-						//won't be cached by HttpURLConnection
-						while(true){
-							byte[] x=new byte[1000];
-							int c=stream.read(x,0,1000);
-							if(c<0)break;
-						}
-					}
-					return value;
-				}
-				ICacheControl cc=CacheControl.getCacheControl(url,headers,requestTime);
-				DebugUtility.log("cc=%s",cc);
-				if(cc==null || cc.isNoStore() || cc.isNoTransform() || cc.getCacheability()<=0 || (!isPrivate && cc.getCacheability()==1)){
-					return (callback==null) ? null : callback.processResponse(url,stream,headers);
-				}
-				new File(finalCachedFile.getParent()).mkdirs();
-				if(serializer==null){
-					// we cache the raw data and read from disk
-					StreamUtility.inputStreamToFile(stream,finalCachedFile);
-					CacheControl.toFile(cc,finalCacheInfoFile);
-					// BufferedInputStream will close the file stream when it's closed
-					if(callback!=null){
-						InputStream newStream=null; try {
-							newStream=new BufferedInputStream(new FileInputStream(finalCachedFile),8192);
-							return (callback==null) ? null : callback.processResponse(url,newStream,headers);
-						} finally { if(newStream!=null)newStream.close(); }
-					}
-				} else if(callback!=null){
-					// we read the stream directly and cache a
-					// serialized version
-					T value=callback.processResponse(url,stream,headers);
-					if(value!=null){
-						try {
-							OutputStream fs=new FileOutputStream(finalCachedFile);
-							try {
-								serializer.writeObjectToStream(value,fs);
-							} finally { if(fs!=null)fs.close(); }
-							CacheControl.toFile(cc,finalCacheInfoFile);
-						} catch(IOException e){
-							finalCachedFile.delete();
-							finalCacheInfoFile.delete();
-						}
-					}
-					return value;
-				} else {
-					if(ResponseCache.getDefault()!=null){
-						//Read all of the stream; otherwise the response
-						//won't be cached by HttpURLConnection
-						while(true){
-							byte[] x=new byte[1000];
-							int c=stream.read(x,0,1000);
-							if(c<0)break;
-						}
-					}
-				}
-				return null;
-			}
-		});
-		return value;
-	}
-	
-
 	public static <T> T downloadUrl(
 			String urlString, 
 			final IProcessResponseListener<T> callback
@@ -963,22 +993,53 @@ public final class DownloadHelper {
 		URL url=null;
 		InputStream stream=null;
 		int network=(Integer)Reflection.invokeStaticByName(
-				Reflection.getClassForName("com.upokecenter.android.net.DownloadHelper"),
+				Reflection.getClassForName("com.upokecenter.android.net.ConnectivityHelper"),
 				"getConnectedNetworkType",-1);
+		String requestMethod="GET";
+		boolean calledConnecting=false;
 		if(network==0){
+			ResponseCache cache=ResponseCache.getDefault();
+			if(cache!=null){
+				CacheResponse response=null;
+				try {
+					if(isEventHandler && callback!=null)
+						((IDownloadEventListener<T>)callback).onConnecting(urlString);
+					calledConnecting=true;
+					response=cache.get(new URI(urlString),
+							requestMethod,
+							new HashMap<String,List<String>>());
+				} catch (URISyntaxException e) {
+					throw new NoConnectionException();
+				} catch (IOException e) {
+					throw new NoConnectionException();
+				}
+				if(response!=null){
+					if(isEventHandler && callback!=null)
+						((IDownloadEventListener<T>)callback).onConnected(urlString);
+					IHttpHeaders headers=new HttpHeadersFromMap(urlString,
+							requestMethod,response.getHeaders());
+					InputStream streamBody=response.getBody();
+					T ret=(callback==null) ? null : callback.processResponse(
+							urlString,streamBody,headers);
+					streamBody.close();
+					return ret;					
+				}
+			}
 			throw new NoConnectionException();
 		}
+		HttpURLConnection connection=null;
 		try {
 			url=new URL(urlString);
-			if(isEventHandler && callback!=null)
+			if(isEventHandler && callback!=null && !calledConnecting){
 				((IDownloadEventListener<T>)callback).onConnecting(urlString);
-			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+				calledConnecting=true;
+			}
+			connection = (HttpURLConnection)url.openConnection();
 			connection.setUseCaches(true);
 			connection.setDoInput(true);
-			connection.setChunkedStreamingMode(0);
 			connection.setReadTimeout(10000);
 			connection.setConnectTimeout(20000);
-			connection.setRequestMethod("GET");
+			connection.setRequestMethod(requestMethod);
 			connection.connect();
 			stream = new BufferedInputStream(connection.getInputStream(),8192);
 			if(isEventHandler && callback!=null)
@@ -993,6 +1054,9 @@ public final class DownloadHelper {
 				try {
 					stream.close();
 				} catch (IOException e) {}
+			}
+			if(connection!=null){
+				connection.disconnect();
 			}
 		}
 	}

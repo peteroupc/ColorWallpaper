@@ -15,6 +15,19 @@ import java.io.Writer;
 public final class StreamUtility {
 	private StreamUtility(){}
 	
+	public static void skipToEnd(InputStream stream){
+		if(stream==null)return;
+		while(true){
+			byte[] x=new byte[1024];
+			try {
+				int c=stream.read(x,0,x.length);
+				if(c<0)break;
+			} catch(IOException e){
+				break; // maybe this stream is already closed
+			}
+		}
+	}
+	
 	public static void copyStream(InputStream stream, OutputStream output)
 			throws IOException {
 			byte[] buffer=new byte[8192];

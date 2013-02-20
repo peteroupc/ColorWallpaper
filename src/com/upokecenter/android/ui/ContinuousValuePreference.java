@@ -1,4 +1,6 @@
-package com.upokecenter.android.util;
+package com.upokecenter.android.ui;
+
+import com.upokecenter.android.util.AppManager;
 
 import android.app.Dialog;
 import android.content.Context;

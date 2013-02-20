@@ -3,8 +3,10 @@ package com.upokecenter.net;
 import java.io.File;
 import java.io.IOException;
 import java.net.ResponseCache;
-import java.util.Date;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import com.upokecenter.util.LowPriorityExecutors;
 import com.upokecenter.util.Reflection;
 import com.upokecenter.util.StreamUtility;
 
@@ -17,6 +19,7 @@ public final class LightweightCacheService {
 			return false;
 		}
 	}
+
 
 	private boolean enableHttpCacheInternal(long sizeInBytes) throws IOException{
 		File cacheDir=this.filePublicPath;
@@ -35,51 +38,46 @@ public final class LightweightCacheService {
 		return (o!=null);
 	}
 
-	Thread thread=null;
-	long cacheSize=2L*1024L*1024L;
+	ScheduledExecutorService pool;
+	volatile long cacheSize=2L*1024L*1024L;
 	Object syncRoot=new Object();
-	long lastTime=0;
-	final long INTERVAL = 1000L * 60L * 5L;		
+	Object syncRootFilesystem=new Object();
 	File filePublicPath;
 	File filePrivatePath;
+	Runnable runnable;
 
-	private static void nanoSleep(long nanos){
-		long lastTime=System.nanoTime();
-		do {
-			try {
-				Thread.sleep(nanos/1000000L,(int)(nanos%1000000L));
-				return;
-			} catch(InterruptedException e){
-				long newTime=System.nanoTime();
-				nanos-=Math.abs(newTime-lastTime);
-				lastTime=newTime;
+	public void enableCache(){
+		pool.submit(new Runnable(){
+
+			@Override
+			public void run() {
+				long size=0;
+				synchronized(syncRoot){
+					size=cacheSize;
+				}
+				synchronized(syncRootFilesystem){
+					enableHttpCache(size);
+				}
 			}
-		} while(nanos>0);
+		});
 	}
 
 	public LightweightCacheService(File publicPath, File privatePath){
 		this.filePublicPath=publicPath;
 		this.filePrivatePath=privatePath;
-		thread=new Thread(new Runnable(){
+		pool=LowPriorityExecutors.newScheduledThreadPool(1);
+		runnable=new Runnable(){
 			@Override
 			public void run() {
 				long size=0;
-				lastTime=new Date().getTime();
 				synchronized(syncRoot){
 					size=cacheSize;
 				}
-				enableHttpCache(size);
-				nanoSleep(5000L*1000000L);
-				while(true){
-					synchronized(syncRoot){
-						size=cacheSize;
-					}
+				synchronized(syncRootFilesystem){
 					if(ResponseCache.getDefault()==null){
-						enableHttpCache(size);
+						enableCache();
 						DownloadHelper.pruneCache(filePublicPath,size);						
 						DownloadHelper.pruneCache(filePrivatePath,size);
-						// Create ".nomedia" files to prevent the files
-						// in the caches from being scanned by Android
 						try {
 							StreamUtility.stringToFile("",new File(filePublicPath,".nomedia"));
 						} catch (IOException e) {}
@@ -87,18 +85,21 @@ public final class LightweightCacheService {
 							StreamUtility.stringToFile("",new File(filePrivatePath,".nomedia"));
 						} catch (IOException e) {}
 					}
-					nanoSleep(INTERVAL*1000000L);
 				}
 			}
-		});
-		thread.start();
+		};
+		pool.scheduleAtFixedRate(runnable,5,120,TimeUnit.SECONDS);
 	}
 	public void close(){
-		thread=null;
+		pool.shutdown();
+		runnable=null;
 	}
 	public void setCacheSize(long size){
+		if(size<=0)
+			throw new IllegalArgumentException();
 		synchronized(syncRoot){ 
 			cacheSize=Math.max(size,0);
 		}			
+		pool.submit(runnable);
 	}
 }

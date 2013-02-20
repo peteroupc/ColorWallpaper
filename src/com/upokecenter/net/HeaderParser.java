@@ -249,6 +249,13 @@ final class HeaderParser {
 					return length;
 				}
 				index+=2;
+			} else if(c=='\n'){
+				if(index+1>=length || 
+						(v.charAt(index+1)!=' ' && v.charAt(index+1)!='\t')){
+					// ill-formed whitespace
+					return length;
+				}
+				index+=1;
 			} else if(c==127 || (c<32 && c!='\t' && c!=' ')){
 				// ill-formed
 				return length; 
@@ -282,6 +289,72 @@ final class HeaderParser {
 		}
 	}
 
+	public static int getResponseCode(String s){
+		int index=0;
+		int length=s.length();
+		if(s.indexOf("HTTP/",index)!=index)
+			return -1;
+		index+=5;
+		index=skipZeros(s,index);
+		if(index>=length || s.charAt(index)!='1')
+			return -1;
+		index++;
+		if(index>=length || s.charAt(index)!='.')
+			return -1;
+		index++;
+		index=skipZeros(s,index);
+		if(index<length && s.charAt(index)=='1')
+			index++;
+		if(index>=length || s.charAt(index)!=' ')
+			return -1;
+		index++;
+		if(index+3>=length)return -1;
+		if(skipDigits(s,index)!=index+3 ||
+				s.charAt(index+3)!=' ')return -1;
+		int num=getPositiveNumber(s,index);
+		return num;
+	}
+
+	public static int skipZeros(String v, int index){
+		char c=0;
+		int length=v.length();
+		while(index<length){
+			c=v.charAt(index);
+			if(c!='0')return index;
+			index++;
+		}
+		return index;
+	}
+	public static int skipDigits(String v, int index){
+		char c=0;
+		int length=v.length();
+		while(index<length){
+			c=v.charAt(index);
+			if(c<'0' || c>'9')return index;
+			index++;
+		}
+		return index;
+	}
+	public static int skipSpace(String v, int index){
+		char c=0;
+		int length=v.length();
+		while(index<length){
+			c=v.charAt(index);
+			if(c!=' ')return index;
+			index++;
+		}
+		return index;	
+	}
+	public static int skipSpaceOrTab(String v, int index){
+		char c=0;
+		int length=v.length();
+		while(index<length){
+			c=v.charAt(index);
+			if(c!=' ' && c!='\t')return index;
+			index++;
+		}
+		return index;	
+	}
 	public static int skipLinearWhitespace(String v, int index){
 		char c=0;
 		int length=v.length();
@@ -294,6 +367,15 @@ final class HeaderParser {
 					return index;
 				}
 				index+=2;
+			} else if(c=='\n'){
+				// HTTP usually allows only '\r\n' in linear whitespace,
+				// but we're being tolerant here
+				if(index+1>=length || 
+						(v.charAt(index+1)!=' ' && v.charAt(index+1)!='\t')){
+					return index;
+				}
+				index+=1;
+				
 			} else if(c!='\t' && c!=' '){
 				return index;
 			}
@@ -406,11 +488,9 @@ final class HeaderParser {
 	public static String getQuotedString(String v, int index){
 		// assumes index points to quotation mark
 		index++;
-		int startIndex=index;
 		int length=v.length();
 		char c=0;
-		boolean finished=false;
-		boolean hasEscaped=false;
+		StringBuilder builder=new StringBuilder();
 		while(index<length){
 			c=v.charAt(index);
 			if(c=='\\'){
@@ -418,51 +498,32 @@ final class HeaderParser {
 					// ill-formed
 					return "";
 				}
-				// we have an escaped character
-				hasEscaped=true;
-				index++;
-			} else if(c=='"'){
-				// we have no escaped characters
-				if(!hasEscaped){
-					return v.substring(startIndex,index);
-				} else {
-					finished=true;
-				}
-			} else if(c=='\r'){
-				if(index+2>=length || 
-						v.charAt(index+1)!='\n' ||
-						(v.charAt(index+2)!=' ' && v.charAt(index+2)!='\t')){
+				builder.append(v.charAt(index+1));
+				index+=2;
+				continue;
+			} else if(c=='\r' || c=='\n' || c==' ' || c=='\t'){
+				int newIndex=skipLinearWhitespace(v,index);
+				if(newIndex==index){
 					// ill-formed whitespace
 					return "";
 				}
-				index+=2;
-			} else if(c==127 || (c<32 && c!='\t' && c!=' ')){
+				builder.append(' ');
+				index=newIndex;
+				continue;
+			} else if(c=='"'){
+				// done
+				return builder.toString();
+			} else if(c==127 || c<32){
 				// ill-formed
 				return ""; 
-			}
-			index++;
-		}
-		if(!finished){
-			// ill-formed
-			return "";
-		}
-		index=startIndex;
-		StringBuilder sb=new StringBuilder();
-		while(index<length){
-			c=v.charAt(index);
-			if(c=='\\'){
-				if(index+1<length){
-					sb.append(v.charAt(index+1));				
-				}
-				index++;
-			} else if(c=='"'){
-				break;
 			} else {
-				sb.append(c);
+				builder.append(c);
+				index++;
+				continue;
 			}
-			index++;
 		}
-		return sb.toString();
+		// ill-formed
+		return "";
 	}
 
 	private static String getDefaultCharset(String contentType){

@@ -7,9 +7,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.upokecenter.android.ui.DialogUtility;
+import com.upokecenter.android.ui.IChoiceListener;
 import com.upokecenter.android.util.AppManager;
-import com.upokecenter.android.util.DialogUtility;
-import com.upokecenter.android.util.IChoiceListener;
 
 public class LauncherActivity extends Activity {
 
@@ -18,7 +18,7 @@ public class LauncherActivity extends Activity {
 		super.onDestroy();
 		DialogUtility.clean();
 	}
-		
+	
 	public void onCreate(Bundle b){
 		super.onCreate(b);
 		AppManager.initialize(this);
