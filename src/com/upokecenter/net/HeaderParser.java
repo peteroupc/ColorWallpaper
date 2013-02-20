@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 
 
-final class HeaderParser {
+public final class HeaderParser {
 		
 	private HeaderParser(){}
 	public static String formatDate(long date){

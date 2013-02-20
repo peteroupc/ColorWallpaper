@@ -52,6 +52,11 @@
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
+            android:name="com.upokecenter.android.ui.AlertDialogActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
             android:name="com.upokecenter.android.ui.GetContentActivity"
             android:exported="false"
             android:label="@string/app_name"

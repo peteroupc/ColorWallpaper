@@ -88,6 +88,7 @@ public final class ChoosePicturePreference extends Preference {
 				intent.putExtra(Intent.EXTRA_TITLE,dialogTitle);				
 			}
 			intent.putExtra("com.upokecenter.android.extra.CALLBACK",this.callback);
+			intent.putExtra("startValue",(String)this.getPersisted(null));
 			getContext().startActivity(intent);
 		}
 

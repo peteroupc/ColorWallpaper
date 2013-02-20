@@ -20,6 +20,7 @@ public class ContinuousValuePreference extends AlertDialogPreference {
 
 	public ContinuousValuePreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		AppManager.initialize(context);
 		TypedArray t=context.getTheme().obtainStyledAttributes(attrs,
 				AppManager.getStyleableResourceGroup("ContinuousValuePreference"),0,0);
 		try {
@@ -100,6 +101,11 @@ public class ContinuousValuePreference extends AlertDialogPreference {
 			@Override
 			public Class<?> getType() {
 				return Integer.TYPE;
+			}
+
+			@Override
+			public boolean isValid(Object[] value) {
+				return ((Integer)value[0]>=minValue && (Integer)value[0]<=maxValue);
 			}
 		};
 		return updater;

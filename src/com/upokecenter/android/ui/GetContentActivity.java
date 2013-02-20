@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.LabeledIntent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -17,6 +19,7 @@ import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.upokecenter.android.util.AppManager;
+import com.upokecenter.android.util.DebugUtility;
 import com.upokecenter.android.util.StorageUtility;
 import com.upokecenter.util.ActionList;
 
@@ -42,7 +45,20 @@ public class GetContentActivity extends Activity {
 				Intent cameraIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);							
 				cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(param));
 				thisActivity.externalFile=param.toString();
-				chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{cameraIntent});
+				Intent intent2=new Intent(thisActivity,AlertDialogActivity.class);
+				String title="Enter a URL";
+				intent2.putExtra(Intent.EXTRA_TITLE,title);
+				intent2.putExtra("dialogTitle",title);
+				String startValue=thisActivity.startValue;
+				if(startValue!=null && startValue.startsWith("/")){
+					Uri uri=Uri.fromFile(new File(startValue));
+					intent2.putExtra("startValue",uri.toString());
+				} else {
+					intent2.putExtra("startValue",startValue);					
+				}
+				intent2=new LabeledIntent(intent2,null,title,0);
+				chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+						new Intent[]{cameraIntent,intent2});
 			}
 			thisActivity.startActivityForResult(chooser,0xabcd);
 		}
@@ -141,6 +157,7 @@ public class GetContentActivity extends Activity {
 	int callback=-1;
 
 	String externalFile=null;
+	String startValue="";
 
 
 
@@ -148,6 +165,16 @@ public class GetContentActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if(requestCode == 0xabcd){
+			DebugUtility.log("result intent=%s",intent);
+			if(intent!=null && new ComponentName(this,AlertDialogActivity.class).equals(intent.getComponent())){
+				DebugUtility.log("result extras=%s",intent.getExtras());
+				if(callback>=0){
+					callbacks.triggerActionOnce(callback,
+							resultCode==RESULT_OK ? intent.getStringExtra("result") : (String)null);
+				}
+				finish();
+				return;
+			}
 			if(resultCode==RESULT_OK && intent==null && externalFile!=null){
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,externalFile);
@@ -187,7 +214,7 @@ public class GetContentActivity extends Activity {
 
 	@Override public void onSaveInstanceState(Bundle b){
 		b.putInt("callback",callback);
-		//DebugUtility.log("saving callback %d",callback);
+		b.putString("startValue",startValue);
 	}
 
 	@Override
@@ -195,13 +222,15 @@ public class GetContentActivity extends Activity {
 		super.onCreate(b);
 		if(b!=null){
 			callback=b.getInt("callback");
-			//DebugUtility.log("restoring callback %d",callback);
+			startValue=b.getString("startValue");
 		}
 		if(b==null){
 			AppManager.initialize(getThis());
 			Intent intent=getThis().getIntent();
 			if(Intent.ACTION_GET_CONTENT.equals(intent.getAction())){
 				Intent myIntent=new Intent(intent);
+				startValue=intent.getStringExtra("startValue");
+				DebugUtility.log("startValue=%s",startValue);
 				callback=intent.getIntExtra("com.upokecenter.android.extra.CALLBACK",-1);
 				myIntent.setType(intent.getType()!=null ? intent.getType() : "image/*");
 				final Intent chooser=Intent.createChooser(myIntent, 

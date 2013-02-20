@@ -9,4 +9,5 @@ public interface IDialogUpdater {
 	public void setValue(Dialog Object, Object value);
 	public Object getValue(Dialog dialog);
 	public Class<?> getType();
+	public boolean isValid(Object[] value);
 }

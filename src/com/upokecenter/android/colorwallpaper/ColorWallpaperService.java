@@ -24,6 +24,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -105,7 +106,6 @@ public class ColorWallpaperService extends BaseWallpaperService {
 		AppManager.initialize(this);
 		return new Engine(){
 			ILocationHelper locationHelper=null;
-			final int DIPCONVERT=30;
 			int width=0;
 			int height=0;
 			Preferences prefs=null;
@@ -125,11 +125,13 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				public boolean usemodelbg;
 				public String picture;
 				public int drawspeedfps;
+				public int boxsize;
 				public void setPreferences(SharedPreferences prefs){
 					this.usedaycycle=prefs.getBoolean("usedaycycle",true);
 					this.uselocation=prefs.getBoolean("uselocation",false);
 					this.usemonthcycle=prefs.getBoolean("usemonthcycle",true);
 					this.colorhue=prefs.getInt("colorhue",0);
+					this.boxsize=prefs.getInt("boxsize",30);
 					this.reacttotaps=prefs.getBoolean("reacttotaps",true);
 					this.fadeinboxes=prefs.getBoolean("fadeinboxes",true);
 					this.usemodelbg=prefs.getBoolean("usemodelbg",true);
@@ -353,9 +355,14 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					}
 					return;
 				}
-				if(prefs.picture.startsWith("http://") ||
-						prefs.picture.startsWith("https://")){
-					DownloadService.sendRequest(AppManager.getApplication(),prefs.picture,
+				String pic=prefs.picture;
+				if(pic.startsWith("file://")){
+					Uri uri=Uri.parse(pic);
+					pic=uri.getPath();
+				}
+				if(pic.startsWith("http://") ||
+						pic.startsWith("https://")){
+					DownloadService.sendRequest(AppManager.getApplication(),pic,
 							new IProcessResponseListener<Object>(){
 
 						@Override
@@ -400,7 +407,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 								modelBitmap.recycle();
 							modelBitmap=b;
 						}
-					}.execute(prefs.picture);
+					}.execute(pic);
 				}
 			}
 
@@ -439,8 +446,8 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor2(int color, int x, int y){
 				if(!this.isVisible())return;
-				int widthlevel=1024/DIPCONVERT;
-				int heightlevel=768/DIPCONVERT;
+				int widthlevel=prefs.boxsize;
+				int heightlevel=prefs.boxsize;
 				int x1=x-heightlevel+random.nextInt(widthlevel*2);
 				int x2=Math.max(4,random.nextInt(widthlevel));
 				int y1=y-heightlevel+random.nextInt(heightlevel*2);
@@ -456,8 +463,8 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor(int color){
 				if(!this.isVisible())return;
-				int widthlevel=1024/DIPCONVERT;
-				int heightlevel=768/DIPCONVERT;
+				int widthlevel=prefs.boxsize;
+				int heightlevel=prefs.boxsize;
 				int x1=random.nextInt(Math.max(1,this.width));
 				int x2=random.nextInt(widthlevel);
 				int y1=random.nextInt(Math.max(1,this.height));

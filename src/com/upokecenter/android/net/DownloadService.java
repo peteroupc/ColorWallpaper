@@ -45,6 +45,8 @@ public final class DownloadService extends Service {
 			IProcessResponseListener<Object> callback,
 			IOnFinishedListener<Object> onFinished
 	){
+		if(context==null)
+			throw new IllegalArgumentException();
 		Intent intent = new Intent(context, DownloadService.class);
 		intent.putExtra(DownloadService.EXTRA_URL,url);
 		intent.putExtra(DownloadService.EXTRA_PROCESS_RESPONSE,DownloadService.sendObject(callback));

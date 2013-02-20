@@ -2,6 +2,8 @@ package com.upokecenter.android.ui;
 
 import java.lang.ref.WeakReference;
 
+import com.upokecenter.android.util.AppManager;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -12,6 +14,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.Preference;
 import android.util.AttributeSet;
+import android.widget.Toast;
 
 public class AlertDialogPreference extends Preference {
 
@@ -33,6 +36,10 @@ public class AlertDialogPreference extends Preference {
 			@Override
 			public Class<?> getType() {
 				return Void.TYPE;
+			}
+			@Override
+			public boolean isValid(Object[] value) {
+				return true;
 			}
 		};
 		return updater;
@@ -68,7 +75,7 @@ public class AlertDialogPreference extends Preference {
 	protected void onRestoreInstanceState(Parcelable state) {
 		boolean isState=PreferenceState.isPreferenceState(state,this.getClass());
 		//DebugUtility.log("isState=%s state=%s",isState,
-			//	isState ? ((PreferenceState)state).getSuperState() : state);
+		//	isState ? ((PreferenceState)state).getSuperState() : state);
 		super.onRestoreInstanceState(isState ? ((PreferenceState)state).getSuperState() : state);
 		if(isState){
 			Bundle b=((PreferenceState)state).getBundle();
@@ -193,13 +200,19 @@ public class AlertDialogPreference extends Preference {
 				@Override
 				public void onClick(DialogInterface dialog, int id) {
 					Object newValue=getDialogUpdater().getValue(alertDialog==null ? null : alertDialog.get());
-					if(callChangeListener(newValue)){
-						persist(newValue);
-						if(!getDialogUpdater().getType().equals(Void.TYPE))
-							setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,
-									getPersisted(null)));
+					Object[] validatedValue=new Object[]{newValue};
+					if(!getDialogUpdater().isValid(validatedValue)){
+						Toast.makeText(getContext(),AppManager.getStringResourceValue("textnotvalid","Not valid"),Toast.LENGTH_SHORT).show();
+						showDialog();
+					} else {
+						if(callChangeListener(validatedValue[0])){
+							persist(validatedValue[0]);
+							if(!getDialogUpdater().getType().equals(Void.TYPE))
+								setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,
+										getPersisted(null)));
+						}
+						alertDialog=null;
 					}
-					alertDialog=null;
 				}});
 		}
 		if(negativeButton!=0){
@@ -215,7 +228,7 @@ public class AlertDialogPreference extends Preference {
 		}
 		AlertDialog dialog=builder.show();
 		getDialogUpdater().prepareDialog(dialog);
-		getDialogUpdater().setValue(dialog,this.getPersistedInt(0));
+		getDialogUpdater().setValue(dialog,this.getPersisted(null));
 		alertDialog=new WeakReference<AlertDialog>(dialog);
 	}
 
@@ -224,7 +237,7 @@ public class AlertDialogPreference extends Preference {
 		super.onClick();
 		showDialog();
 	}
-	
+
 	@Override
 	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		if (restorePersistedValue) {

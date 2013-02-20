@@ -45,13 +45,15 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 	AlertDialog dialog=null;
 	boolean useChooser=false;
 
-	private boolean advancedShare(Bundle bundle){
+	private boolean advancedShare(Intent sourceIntent){
+		Bundle bundle=sourceIntent.getExtras();
+		String action=sourceIntent.getAction();
 		String title=bundle.getString(Intent.EXTRA_TITLE);
 		String message=bundle.getString(Intent.EXTRA_TEXT);
 		String subject=bundle.getString(Intent.EXTRA_SUBJECT);
 		final Activity thisActivity=getThis();
 		Intent share = new Intent(Intent.ACTION_SEND);
-		share.setType("text/plain");
+		share.setType(sourceIntent.getType());
 		share.putExtra(Intent.EXTRA_TEXT,message);
 		share.putExtra(Intent.EXTRA_SUBJECT,subject);
 		List<Intent> intents = new ArrayList<Intent>();
@@ -69,7 +71,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 			}
 		});
 		for(IntentHolder intentAct : resolveInfos) {
-			Intent intent = new Intent(Intent.ACTION_SEND);
+			Intent intent = new Intent(action);
 			intent.setType("text/plain");
 			String packageName=intentAct.packageName;
 			intent.putExtra(Intent.EXTRA_SUBJECT, subject);
@@ -198,7 +200,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 			AppManager.initialize(getThis());
 			Intent intent=getThis().getIntent();
 			if(Intent.ACTION_SEND.equals(intent.getAction())){
-				if(!advancedShare(intent.getExtras())){
+				if(!advancedShare(intent)){
 					getThis().finish();
 				}
 			} else {

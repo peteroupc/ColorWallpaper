@@ -814,8 +814,8 @@ public final class DownloadHelper {
 			boolean isPrivate=(cachePath==null) ? false : cachePath.toString().startsWith("/data/");
 			final ICacheControl cc=CacheControl.getCacheControl(
 					new HttpHeaders(connection),new Date().getTime());
-			DebugUtility.log("CacheRequest put %s -> %s",uri.toString(),
-					connection.getURL().toString());
+			//DebugUtility.log("CacheRequest put %s -> %s",uri.toString(),
+				//	connection.getURL().toString());
 			final CacheResponseInfo crinfo=getCachedResponse(
 					connection.getURL().toString(),this.cachePath,false);
 			if(cc!=null && (cc.getCacheability()==2 || (isPrivate && cc.getCacheability()==1)) &&
@@ -823,8 +823,8 @@ public final class DownloadHelper {
 				return new CacheRequest(){
 					@Override
 					public void abort() {
-						DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
-								crinfo.trueCacheInfoFile);
+						//DebugUtility.log("deleted, aborted: %s %s",crinfo.trueCachedFile,
+							//	crinfo.trueCacheInfoFile);
 						crinfo.trueCachedFile.delete();
 						crinfo.trueCacheInfoFile.delete();
 					}

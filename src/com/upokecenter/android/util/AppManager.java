@@ -111,6 +111,7 @@ public final class AppManager {
 	}
 	
 	public static void initialize(Context context){
+		if(context==null)return;
 		Context c=null;
 		synchronized(syncRoot){
 			if(!initialized){
@@ -149,7 +150,9 @@ public final class AppManager {
 				Object built=Reflection.invokeByName(builder,"build",null);
 				Reflection.invokeStaticByName(classStrictMode,"setThreadPolicy",null,built);
 				builder=Reflection.construct(classVmPolicyBuilder);
-				builder=Reflection.invokeByName(builder,"detectAll",builder);
+				builder=Reflection.invokeByName(builder,"detectLeakedClosableObjects",builder);
+				builder=Reflection.invokeByName(builder,"detectLeakedRegistrationObjects",builder);
+				builder=Reflection.invokeByName(builder,"detectLeakedSqlLiteObjects",builder);
 				builder=Reflection.invokeByName(builder,"penaltyLog",builder);
 				builder=Reflection.invokeByName(builder,"penaltyDeath",builder);
 				built=Reflection.invokeByName(builder,"build",null);

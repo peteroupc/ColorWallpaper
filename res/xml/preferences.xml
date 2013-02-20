@@ -45,6 +45,16 @@
         android:key="fadeinboxes"
         android:title="@string/fadeinboxes"
         android:defaultValue="true" />
+<com.upokecenter.android.ui.ContinuousValuePreference
+        android:key="boxsize"
+        android:dialogLayout="@layout/huedialoglayout"
+     	android:title="@string/boxsize"
+        android:dialogTitle="@string/boxsize"
+        android:summary="@string/summary_boxsize"
+        custom:minValue="10"
+        custom:maxValue="70"
+        custom:label="@string/xpixels"
+        android:defaultValue="30" />
 <CheckBoxPreference
         android:key="usemodelbg"
         android:title="@string/usemodelbg"
