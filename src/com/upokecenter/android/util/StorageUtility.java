@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
@@ -33,6 +34,8 @@ public final class StorageUtility {
 		}
 	}
 
+
+	
 	public static File getCachePath(Context ctx, String name){
 		File cacheroot=null;
 		// Check if we can write to external storage
@@ -104,5 +107,17 @@ public final class StorageUtility {
 			}
 			i++;
 		}
+	}
+
+	public static long getDefaultCacheSize(Context context){
+		ActivityManager mgr=((ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE));
+		long memory=Runtime.getRuntime().maxMemory();
+		long m2=(long)(Integer)Reflection.invokeByName(mgr,"getMemoryClass",-1);
+		if(m2>=0){
+			memory=Math.min(memory,m2*1024L*1024L);
+		}
+		DebugUtility.log("%d %d",memory,m2);
+		long defaultCacheSize=Math.max(1L*1024L*1024L,memory/4);
+		return defaultCacheSize;
 	}
 }

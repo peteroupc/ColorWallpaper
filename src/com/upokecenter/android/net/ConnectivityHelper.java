@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.telephony.TelephonyManager;
 
 import com.upokecenter.android.util.AppManager;
 
@@ -68,8 +69,21 @@ public final class ConnectivityHelper {
 		connListeners.add(new ConnectionReceiver(context,receiver,listener));
 		listener.onConnectionChanged(context,getConnectedNetworkType());
 	}
-	
 
+	public static int getMobileNetworkType(){
+		ConnectivityManager mgr=(ConnectivityManager)AppManager.getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo network=mgr.getActiveNetworkInfo();
+		if(network==null)return 0;
+		if(network.isConnected()){
+			return network.getType();
+		}
+		if(mgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnected()){
+			TelephonyManager tmgr=(TelephonyManager)AppManager.getApplication().getSystemService(Context.TELEPHONY_SERVICE);
+			return tmgr.getNetworkType();
+		}
+		return 0;
+	}
+	
 	public static int getConnectedNetworkType(){
 		ConnectivityManager mgr=(ConnectivityManager)AppManager.getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo network=mgr.getActiveNetworkInfo();
