@@ -479,8 +479,8 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					int h=modelBitmap.getHeight();
 					float xmid=r.left+(r.right-r.left)/2;
 					float ymid=r.top+(r.bottom-r.top)/2;
-					int bitmapx=(int)Math.round(xmid*w*1.0f/Math.max(1,this.width));
-					int bitmapy=(int)Math.round(ymid*h*1.0f/Math.max(1,this.height));
+					int bitmapx=Math.round(xmid*w*1.0f/Math.max(1,this.width));
+					int bitmapy=Math.round(ymid*h*1.0f/Math.max(1,this.height));
 					if(bitmapx>=w)bitmapx=w-1;
 					if(bitmapy>=h)bitmapy=h-1;
 					if(bitmapx<0)bitmapx=0;

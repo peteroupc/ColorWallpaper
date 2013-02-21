@@ -29,6 +29,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 		final private Handler handler = new Handler();
 		final private Runnable runnable = new Runnable()
 		{
+			@Override
 			public void run()
 			{
 				nextFrame();

@@ -19,6 +19,7 @@ public class LauncherActivity extends Activity {
 		DialogUtility.clean();
 	}
 	
+	@Override
 	public void onCreate(Bundle b){
 		super.onCreate(b);
 		AppManager.initialize(this);
@@ -27,6 +28,7 @@ public class LauncherActivity extends Activity {
 						R.array.entries_launcher_jellybean : 
 							R.array.entries_launcher,
 		    new IChoiceListener(){
+			@Override
 			public void onChoice(int choice){
 				if(choice==0){ // Settings
 					Intent intent=new Intent(Intent.ACTION_MAIN);

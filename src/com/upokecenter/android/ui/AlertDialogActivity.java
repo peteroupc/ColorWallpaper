@@ -96,7 +96,7 @@ public class AlertDialogActivity extends Activity {
 				return;
 			}
 		}
-		b.putString("startValue",(String)startValue);
+		b.putString("startValue",startValue);
 	}
 	
 	@Override

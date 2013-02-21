@@ -6,6 +6,7 @@ import java.util.Locale;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.text.InputType;
 import android.text.method.SingleLineTransformationMethod;
 import android.util.AttributeSet;
@@ -56,7 +57,7 @@ public class UriPreference extends AlertDialogPreference {
 				EditText editText=(EditText)dialog.findViewById(AppManager.getIdResource("edittext"));
 				if(editText==null)return;
 				String oldText=editText.getText().toString();
-				if(!oldText.equals((String)value)){
+				if(!oldText.equals(value)){
 					editText.setText((String)value);
 					editText.setSelection(editText.getText().length());
 				}
@@ -85,7 +86,7 @@ public class UriPreference extends AlertDialogPreference {
 				editText.setOnEditorActionListener(new TextView.OnEditorActionListener(){
 					@Override
 					public boolean onEditorAction(TextView arg0, int arg1, KeyEvent arg2) {
-						((AlertDialog)dialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+						((AlertDialog)dialog).getButton(DialogInterface.BUTTON_POSITIVE).performClick();
 						return true;
 					}
 				});

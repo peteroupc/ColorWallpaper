@@ -66,6 +66,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 		}
 		// Sort intent list by label
 		Collections.sort(resolveInfos,new Comparator<IntentHolder>(){
+			@Override
 			public int compare(IntentHolder a, IntentHolder b){
 				return a.label.compareTo(b.label); // compare the labels
 			}
@@ -121,7 +122,7 @@ public class ShareActivity extends Activity { private Activity getThis(){ return
 								}
 								if(image!=null){
 									try {
-										image.setImageDrawable(getContext().getPackageManager().getActivityIcon((Intent)getItem(position).intent));
+										image.setImageDrawable(getContext().getPackageManager().getActivityIcon(getItem(position).intent));
 									} catch (NameNotFoundException e) {}
 								}
 								return view;

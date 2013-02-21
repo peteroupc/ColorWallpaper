@@ -165,12 +165,28 @@ public class GetContentActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if(requestCode == 0xabcd){
-			DebugUtility.log("result intent=%s",intent);
+			//DebugUtility.log("result intent=%s",intent);
+			if(resultCode==RESULT_CANCELED){
+				if(callback>=0){
+					callbacks.triggerActionOnce(callback,(String)null);
+				}
+				finish();
+				return;
+			}
 			if(intent!=null && new ComponentName(this,AlertDialogActivity.class).equals(intent.getComponent())){
 				DebugUtility.log("result extras=%s",intent.getExtras());
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,
 							resultCode==RESULT_OK ? intent.getStringExtra("result") : (String)null);
+				}
+				finish();
+				return;
+			}
+			if(resultCode==RESULT_OK && intent!=null && intent.getData()!=null &&
+					intent.getData().getScheme()!=null &&
+					!"content".equals(intent.getData().getScheme().toLowerCase())){
+				if(callback>=0){
+					callbacks.triggerActionOnce(callback,intent.getData().toString());
 				}
 				finish();
 				return;
@@ -230,7 +246,7 @@ public class GetContentActivity extends Activity {
 			if(Intent.ACTION_GET_CONTENT.equals(intent.getAction())){
 				Intent myIntent=new Intent(intent);
 				startValue=intent.getStringExtra("startValue");
-				DebugUtility.log("startValue=%s",startValue);
+				//DebugUtility.log("startValue=%s",startValue);
 				callback=intent.getIntExtra("com.upokecenter.android.extra.CALLBACK",-1);
 				myIntent.setType(intent.getType()!=null ? intent.getType() : "image/*");
 				final Intent chooser=Intent.createChooser(myIntent, 

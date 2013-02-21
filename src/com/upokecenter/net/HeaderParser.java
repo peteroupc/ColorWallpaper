@@ -62,10 +62,10 @@ public final class HeaderParser {
 		int value=0;
 		char c=0;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=10*((int)c-(int)'0'); index++;
+			value+=10*(c-'0'); index++;
 		} else return -1;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=((int)c-(int)'0'); index++;
+			value+=(c-'0'); index++;
 		} else return -1;
 		return value;
 	}
@@ -74,16 +74,16 @@ public final class HeaderParser {
 		int value=0;
 		char c=0;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=1000*((int)c-(int)'0'); index++;
+			value+=1000*(c-'0'); index++;
 		} else return -1;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=100*((int)c-(int)'0'); index++;
+			value+=100*(c-'0'); index++;
 		} else return -1;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=10*((int)c-(int)'0'); index++;
+			value+=10*(c-'0'); index++;
 		} else return -1;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=((int)c-(int)'0'); index++;
+			value+=(c-'0'); index++;
 		} else return -1;
 		return value;
 	}
@@ -94,10 +94,10 @@ public final class HeaderParser {
 		if(index<v.length() && v.charAt(index)==' '){
 			value=0; index++;
 		} else if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=10*((int)c-(int)'0'); index++;
+			value+=10*(c-'0'); index++;
 		} else return -1;
 		if(index<v.length() && (c=v.charAt(index))>='0' && c<='9'){
-			value+=((int)c-(int)'0'); index++;
+			value+=(c-'0'); index++;
 		} else return -1;
 		return value;
 	}

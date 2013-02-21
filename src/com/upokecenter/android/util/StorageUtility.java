@@ -112,7 +112,7 @@ public final class StorageUtility {
 	public static long getDefaultCacheSize(Context context){
 		ActivityManager mgr=((ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE));
 		long memory=Runtime.getRuntime().maxMemory();
-		long m2=(long)(Integer)Reflection.invokeByName(mgr,"getMemoryClass",-1);
+		long m2=(Integer)Reflection.invokeByName(mgr,"getMemoryClass",-1);
 		if(m2>=0){
 			memory=Math.min(memory,m2*1024L*1024L);
 		}

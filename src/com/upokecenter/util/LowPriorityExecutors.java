@@ -41,7 +41,8 @@ public class LowPriorityExecutors {
                          "-thread-";
         }
 
-        public Thread newThread(Runnable r) {
+        @Override
+		public Thread newThread(Runnable r) {
             Thread t = new Thread(group, r,
                                   namePrefix + threadNumber.getAndIncrement(),
                                   0);

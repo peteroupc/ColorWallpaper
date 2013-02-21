@@ -39,7 +39,7 @@ public class ContinuousValuePreference extends AlertDialogPreference {
 	}
 	
 	private int valueToProgress(int value){
-		float valueAsProgress=(maxValue==minValue) ? 0 : (((Integer)value)-minValue)*1.0f/(maxValue-minValue);
+		float valueAsProgress=(maxValue==minValue) ? 0 : ((value)-minValue)*1.0f/(maxValue-minValue);
 		//DebugUtility.log("valueToProgress %d->%d",value,Math.round(valueAsProgress*10000f));
 		if(valueAsProgress<0)return 0;
 		if(valueAsProgress>1)return 10000;
