@@ -326,6 +326,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					modelBitmap.recycle();
 					modelBitmap=null;
 				}
+				DownloadService.shutdown(ColorWallpaperService.this);
 				super.onDestroy();
 			}
 

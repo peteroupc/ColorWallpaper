@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Locale;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -19,9 +21,9 @@ import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.upokecenter.android.util.AppManager;
-import com.upokecenter.android.util.DebugUtility;
 import com.upokecenter.android.util.StorageUtility;
 import com.upokecenter.util.ActionList;
+import com.upokecenter.util.DebugUtility;
 
 public class GetContentActivity extends Activity { 
 	private static final class CameraIntentAsyncTask extends
@@ -165,7 +167,7 @@ public class GetContentActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if(requestCode == 0xabcd){
-			//DebugUtility.log("result intent=%s",intent);
+			DebugUtility.log("result intent=%s",intent);
 			if(resultCode==RESULT_CANCELED){
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,(String)null);
@@ -184,7 +186,7 @@ public class GetContentActivity extends Activity {
 			}
 			if(resultCode==RESULT_OK && intent!=null && intent.getData()!=null &&
 					intent.getData().getScheme()!=null &&
-					!"content".equals(intent.getData().getScheme().toLowerCase())){
+					!"content".equals(intent.getData().getScheme().toLowerCase(Locale.US))){
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,intent.getData().toString());
 				}

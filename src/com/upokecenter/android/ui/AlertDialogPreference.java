@@ -3,6 +3,7 @@ package com.upokecenter.android.ui;
 import java.lang.ref.WeakReference;
 
 import com.upokecenter.android.util.AppManager;
+import com.upokecenter.util.DebugUtility;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -48,7 +49,7 @@ public class AlertDialogPreference extends Preference {
 	@Override
 	protected Parcelable onSaveInstanceState() {
 		Parcelable state = super.onSaveInstanceState();
-		PreferenceState ret = new PreferenceState(state,this.getClass());
+		PreferenceState ret = new PreferenceState(state, this.getClass());
 		Bundle b=ret.getBundle();
 		Dialog dialog=alertDialog==null ? null : alertDialog.get();
 		Class<?> type=getDialogUpdater().getType();
@@ -74,8 +75,9 @@ public class AlertDialogPreference extends Preference {
 	@Override
 	protected void onRestoreInstanceState(Parcelable state) {
 		boolean isState=PreferenceState.isPreferenceState(state,this.getClass());
-		//DebugUtility.log("isState=%s state=%s",isState,
-		//	isState ? ((PreferenceState)state).getSuperState() : state);
+//		DebugUtility.log("isState=%s state=%s [key=%s, getClass=%s]",isState,
+	//		isState ? ((PreferenceState)state).getSuperState() : state,
+		//			getKey(),this.getClass());
 		super.onRestoreInstanceState(isState ? ((PreferenceState)state).getSuperState() : state);
 		if(isState){
 			Bundle b=((PreferenceState)state).getBundle();

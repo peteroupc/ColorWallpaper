@@ -54,6 +54,10 @@ public final class DownloadService extends Service {
 		context.startService(intent);		
 	}
 	
+	public static void shutdown(Context context){
+		context.stopService(new Intent(context, DownloadService.class));
+	}
+	
 	LightweightDownloadService dservice=null;
 	
 	@Override

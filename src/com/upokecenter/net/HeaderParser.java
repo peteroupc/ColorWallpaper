@@ -10,7 +10,7 @@ import java.util.TimeZone;
 public final class HeaderParser {
 		
 	private HeaderParser(){}
-	public static String formatDate(long date){
+	public static String formatHttpDate(long date){
 		Calendar c=Calendar.getInstance(TimeZone.getTimeZone("GMT"),
 				Locale.US);
 		c.setTime(new Date(date));
@@ -102,7 +102,7 @@ public final class HeaderParser {
 		return value;
 	}
 
-	public static long parseDate(String v, long defaultValue){
+	public static long parseHttpDate(String v, long defaultValue){
 		if(v==null)return defaultValue;
 		int index=0;
 		boolean rfc850=false;

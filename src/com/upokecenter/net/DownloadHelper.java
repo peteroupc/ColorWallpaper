@@ -29,7 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.upokecenter.android.util.DebugUtility;
+import com.upokecenter.util.DebugUtility;
 import com.upokecenter.util.IStreamObjectSerializer;
 import com.upokecenter.util.Reflection;
 import com.upokecenter.util.StreamUtility;
@@ -457,7 +457,7 @@ public final class DownloadHelper {
 			}
 			@Override
 			public long getHeaderFieldDate(String field, long defaultValue) {
-				return HeaderParser.parseDate(getHeaderField(field),defaultValue);
+				return HeaderParser.parseHttpDate(getHeaderField(field),defaultValue);
 			}
 			@Override
 			public Map<String, List<String>> getHeaderFields() {
@@ -574,7 +574,7 @@ public final class DownloadHelper {
 		}
 		@Override
 		public long getHeaderFieldDate(String field, long defaultValue) {
-			return HeaderParser.parseDate(getHeaderField(field),defaultValue);
+			return HeaderParser.parseHttpDate(getHeaderField(field),defaultValue);
 		}
 
 		@Override
@@ -677,7 +677,7 @@ public final class DownloadHelper {
 		public String getHeaderField(String name) {
 			if(name==null)return "HTTP/1.1 200 OK";
 			if("date".equals(name.toLowerCase(Locale.US)))
-				return HeaderParser.formatDate(date);
+				return HeaderParser.formatHttpDate(date);
 			if("content-length".equals(name.toLowerCase(Locale.US)))
 				return Long.toString(length);
 			return null;

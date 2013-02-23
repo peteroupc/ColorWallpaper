@@ -12,6 +12,7 @@ final class PreferenceState extends BaseSavedState {
     public PreferenceState(Parcel p) {
         super(p);
         this.bundle = p.readBundle();
+        this.clazz = (Class<?>)p.readSerializable();
     }
 
     public PreferenceState(Parcelable state, Class<?> clazz) {
@@ -45,6 +46,7 @@ final class PreferenceState extends BaseSavedState {
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
         dest.writeBundle(bundle);
+        dest.writeSerializable(clazz);
     }
 
     public static final Parcelable.Creator<PreferenceState> CREATOR = new Parcelable.Creator<PreferenceState>() {
