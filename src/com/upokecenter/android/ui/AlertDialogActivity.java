@@ -3,10 +3,10 @@ package com.upokecenter.android.ui;
 import java.lang.ref.WeakReference;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -25,10 +25,12 @@ public class AlertDialogActivity extends Activity {
 		int negativeButton=android.R.string.cancel;
 		int layoutResource=AppManager.getLayoutResource("edittextlayout");
 		AlertDialog.Builder builder=DialogUtility.createBuilder(getContext());
-		if(dialogMessage!=null)
+		if(dialogMessage!=null) {
 			builder=builder.setMessage(dialogMessage);
-		if(dialogTitle!=null)
+		}
+		if(dialogTitle!=null) {
 			builder=builder.setTitle(dialogTitle);
+		}
 		if(positiveButton!=0){
 			builder=builder.setPositiveButton(positiveButton,new DialogInterface.OnClickListener() {
 				@Override
@@ -98,16 +100,18 @@ public class AlertDialogActivity extends Activity {
 		}
 		b.putString("startValue",startValue);
 	}
-	
+
 	@Override
 	protected void onDestroy(){
 		if(alertDialog!=null){
 			AlertDialog d=alertDialog.get();
-			if(d!=null)d.dismiss();
+			if(d!=null) {
+				d.dismiss();
+			}
 		}
 		super.onDestroy();
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle b){
 		super.onCreate(b);
@@ -116,7 +120,7 @@ public class AlertDialogActivity extends Activity {
 		dialogMessage=intent.getStringExtra("dialogMessage");
 		dialogTitle=intent.getStringExtra("dialogTitle");
 		if(b==null){
-			startValue=intent.getStringExtra("startValue");			
+			startValue=intent.getStringExtra("startValue");
 		} else {
 			startValue=b.getString("startValue");
 		}

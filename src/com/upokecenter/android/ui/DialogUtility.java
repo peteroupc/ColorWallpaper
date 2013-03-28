@@ -4,13 +4,13 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import com.upokecenter.util.Reflection;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Build;
+
+import com.upokecenter.util.Reflection;
 
 public final class DialogUtility {
 	private DialogUtility(){}
@@ -24,19 +24,18 @@ public final class DialogUtility {
 		}
 		choices.clear();
 	}
-	
+
 
 	public static AlertDialog.Builder createBuilder(Context context){
-		if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+		if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 			// use Device Default Dark theme in ICS and later
 			return (AlertDialog.Builder)Reflection.construct(AlertDialog.Builder.class,context,4);
-		} else if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB){
+		else if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB)
 			// use Holo Dark theme in Honeycomb
 			return (AlertDialog.Builder)Reflection.construct(AlertDialog.Builder.class,context,2);
-		} else {
+		else
 			// This constructor will use the Traditional theme even in Honeycomb and later
 			return new AlertDialog.Builder(context);
-		}
 	}
 	private static void setChoice(DialogInterface c, int choice){
 		if(c==null)return;
@@ -55,9 +54,9 @@ public final class DialogUtility {
 		if(c==null)return Integer.MIN_VALUE;
 		for(WeakReference<DialogInterface> key : new HashSet<WeakReference<DialogInterface>>(choices.keySet())){
 			DialogInterface k=key.get();
-			if(c.equals(key.get())){
+			if(c.equals(key.get()))
 				return choices.get(key);
-			} else if(k==null){
+			else if(k==null){
 				choices.remove(key);
 			}
 		}
@@ -70,7 +69,7 @@ public final class DialogUtility {
 	public static void showChoices(Context context, int title, int arrayResource, IChoiceListener listener){
 		showChoices(context,context.getResources().getString(title),arrayResource,listener);
 	}
-		
+
 	private static <T> CharSequence[] toCharSequenceArray(T[] items){
 		CharSequence[] ret=new CharSequence[items.length];
 		for(int i=0;i<items.length;i++){
@@ -78,15 +77,17 @@ public final class DialogUtility {
 		}
 		return ret;
 	}
-	
-	
+
+
 	private static AlertDialog.Builder createBuilder(
 			Context context,
 			String title,
-		   IChoiceListener listener
-	){
+			IChoiceListener listener
+			){
 		AlertDialog.Builder builder=createBuilder(context);
-		if(title!=null)builder=builder.setTitle(title);
+		if(title!=null) {
+			builder=builder.setTitle(title);
+		}
 		builder=builder.setOnCancelListener(
 				(listener==null) ? null : new DialogInterface.OnCancelListener(){
 					@Override public void onCancel(DialogInterface di){
@@ -95,34 +96,36 @@ public final class DialogUtility {
 				});
 		return builder;
 	}
-	
+
 	private static void showBuilder(AlertDialog.Builder builder,
-			   final IChoiceListener listener){
+			final IChoiceListener listener){
 		AlertDialog dialog=builder.create();
 		dialog.setOnDismissListener(new DialogInterface.OnDismissListener(){
 			@Override public void onDismiss(DialogInterface di){
 				int choice=getChoice(di);
-				if(choice!=Integer.MIN_VALUE)listener.onChoice(choice);
+				if(choice!=Integer.MIN_VALUE) {
+					listener.onChoice(choice);
+				}
 			}
 		});
 		setChoice(dialog,Integer.MIN_VALUE);
 		dialog.show();
 	}
-	
+
 	public static void showChoices(
 			Context context,
 			String title,
 			int arrayResource,
-			 IChoiceListener listener
+			IChoiceListener listener
 			){
 		AlertDialog.Builder builder=createBuilder(context,title,listener);
 		if(arrayResource!=0){
-				builder=builder.setItems(arrayResource,
-								new DialogInterface.OnClickListener(){
-					@Override public void onClick(DialogInterface di, int o){
-						setChoice(di,o);
-					}
-				});
+			builder=builder.setItems(arrayResource,
+					new DialogInterface.OnClickListener(){
+				@Override public void onClick(DialogInterface di, int o){
+					setChoice(di,o);
+				}
+			});
 		}
 		showBuilder(builder,listener);
 	}
@@ -131,19 +134,19 @@ public final class DialogUtility {
 			Context context,
 			String title,
 			T[] items,
-			 IChoiceListener listener
+			IChoiceListener listener
 			){
 		if(items==null)throw new NullPointerException();
 		AlertDialog.Builder builder=createBuilder(context,title,listener);
 		if(items.length>0){
-				builder=builder.setItems(
-						(items[0] instanceof CharSequence) ? (CharSequence[])items
-								: toCharSequenceArray(items),
-								new DialogInterface.OnClickListener(){
-					@Override public void onClick(DialogInterface di, int o){
-						setChoice(di,o);
-					}
-				});
+			builder=builder.setItems(
+					(items[0] instanceof CharSequence) ? (CharSequence[])items
+							: toCharSequenceArray(items),
+							new DialogInterface.OnClickListener(){
+						@Override public void onClick(DialogInterface di, int o){
+							setChoice(di,o);
+						}
+					});
 		}
 		showBuilder(builder,listener);
 	}
@@ -158,43 +161,53 @@ public final class DialogUtility {
 
 	public static void showMessage(Context context, String title, String message, IChoiceListener listener){
 		Resources resources=context.getResources();
-		showMessage(context,title,message,resources.getString(android.R.string.yes), 
+		showMessage(context,title,message,resources.getString(android.R.string.yes),
 				resources.getString(android.R.string.no),null,listener);
-	}	
-	
+	}
+
 	public static void showMessage(
 			Context context,
 			String title,
-			String message, 
-			String positiveButton, 
+			String message,
+			String positiveButton,
 			String negativeButton,
 			String neutralButton,
 			final IChoiceListener listener
 			){
 		AlertDialog.Builder builder=createBuilder(context);
-		if(title!=null)builder=builder.setTitle(title);
-		if(message!=null)builder=builder.setMessage(message);
-		if(positiveButton!=null)builder=builder.setPositiveButton(
-				positiveButton,
-				(listener==null) ? null : new DialogInterface.OnClickListener(){
-					@Override public void onClick(DialogInterface di, int o){
-						setChoice(di,POSITIVE);
-					}
-				});
-		if(negativeButton!=null)builder=builder.setNegativeButton(
-				negativeButton,
-				(listener==null) ? null : new DialogInterface.OnClickListener(){
-					@Override public void onClick(DialogInterface di, int o){
-						setChoice(di,NEGATIVE);
-					}
-				});
-		if(neutralButton!=null)builder=builder.setNeutralButton(
-				neutralButton,
-				(listener==null) ? null : new DialogInterface.OnClickListener(){
-					@Override public void onClick(DialogInterface di, int o){
-						setChoice(di,NEUTRAL);
-					}
-				});
+		if(title!=null) {
+			builder=builder.setTitle(title);
+		}
+		if(message!=null) {
+			builder=builder.setMessage(message);
+		}
+		if(positiveButton!=null) {
+			builder=builder.setPositiveButton(
+					positiveButton,
+					(listener==null) ? null : new DialogInterface.OnClickListener(){
+						@Override public void onClick(DialogInterface di, int o){
+							setChoice(di,POSITIVE);
+						}
+					});
+		}
+		if(negativeButton!=null) {
+			builder=builder.setNegativeButton(
+					negativeButton,
+					(listener==null) ? null : new DialogInterface.OnClickListener(){
+						@Override public void onClick(DialogInterface di, int o){
+							setChoice(di,NEGATIVE);
+						}
+					});
+		}
+		if(neutralButton!=null) {
+			builder=builder.setNeutralButton(
+					neutralButton,
+					(listener==null) ? null : new DialogInterface.OnClickListener(){
+						@Override public void onClick(DialogInterface di, int o){
+							setChoice(di,NEUTRAL);
+						}
+					});
+		}
 		builder=builder.setOnCancelListener(
 				(listener==null) ? null : new DialogInterface.OnCancelListener(){
 					@Override public void onCancel(DialogInterface di){
@@ -205,7 +218,9 @@ public final class DialogUtility {
 		dialog.setOnDismissListener(new DialogInterface.OnDismissListener(){
 			@Override public void onDismiss(DialogInterface di){
 				int choice=getChoice(di);
-				if(choice!=Integer.MIN_VALUE)listener.onChoice(choice);
+				if(choice!=Integer.MIN_VALUE) {
+					listener.onChoice(choice);
+				}
 			}
 		});
 		setChoice(dialog,Integer.MIN_VALUE);
@@ -214,8 +229,8 @@ public final class DialogUtility {
 	public static void showMessage(
 			Context context,
 			int title,
-			int message, 
-			int positiveButton, 
+			int message,
+			int positiveButton,
 			int negativeButton,
 			int neutralButton,
 			IChoiceListener listener

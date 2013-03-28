@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -41,7 +38,9 @@ import com.upokecenter.android.util.BitmapUtility;
 import com.upokecenter.android.wallpaper.BaseWallpaperService;
 import com.upokecenter.net.IHttpHeaders;
 import com.upokecenter.net.IOnFinishedListener;
-import com.upokecenter.net.IProcessResponseListener;
+import com.upokecenter.net.IResponseListener;
+import com.upokecenter.util.DateTimeUtility;
+import com.upokecenter.util.Random;
 import com.upokecenter.util.SunriseSunset;
 import com.upokecenter.util.XmlHelper;
 
@@ -49,7 +48,7 @@ import com.upokecenter.util.XmlHelper;
 @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 public class ColorWallpaperService extends BaseWallpaperService {
 
-	public static Bitmap cacheImageFile(String file, 
+	public static Bitmap cacheImageFile(String file,
 			int desiredWidth, int desiredHeight) throws IOException {
 		BitmapFactory.Options o=new BitmapFactory.Options();
 		o.inJustDecodeBounds=true;
@@ -127,16 +126,16 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				public int drawspeedfps;
 				public int boxsize;
 				public void setPreferences(SharedPreferences prefs){
-					this.usedaycycle=prefs.getBoolean("usedaycycle",true);
-					this.uselocation=prefs.getBoolean("uselocation",false);
-					this.usemonthcycle=prefs.getBoolean("usemonthcycle",true);
-					this.colorhue=prefs.getInt("colorhue",0);
-					this.boxsize=prefs.getInt("boxsize",30);
-					this.reacttotaps=prefs.getBoolean("reacttotaps",true);
-					this.fadeinboxes=prefs.getBoolean("fadeinboxes",true);
-					this.usemodelbg=prefs.getBoolean("usemodelbg",true);
-					this.picture=prefs.getString("picture","");
-					this.drawspeedfps=prefs.getInt("drawspeedfps",10);
+					usedaycycle=prefs.getBoolean("usedaycycle",true);
+					uselocation=prefs.getBoolean("uselocation",false);
+					usemonthcycle=prefs.getBoolean("usemonthcycle",true);
+					colorhue=prefs.getInt("colorhue",0);
+					boxsize=prefs.getInt("boxsize",30);
+					reacttotaps=prefs.getBoolean("reacttotaps",true);
+					fadeinboxes=prefs.getBoolean("fadeinboxes",true);
+					usemodelbg=prefs.getBoolean("usemodelbg",true);
+					picture=prefs.getString("picture","");
+					drawspeedfps=prefs.getInt("drawspeedfps",10);
 				}
 			}
 
@@ -145,7 +144,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			 * an instance variable, not a local variable, because
 			 * the SharedPreferences object stores listeners as weak
 			 * references when it registers them, so when they are
-			 * local variables, they become eligible for garbage 
+			 * local variables, they become eligible for garbage
 			 * collection once the listeners leave the
 			 * scope of the method.
 			 */
@@ -226,7 +225,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 					p.setColor(color);
 					if(Color.alpha(color)==0xFF && scratchCanvas!=null){
 						scratchCanvas.drawRect(ct.rect,p);
-					}							
+					}
 				}
 				updateColorTransitions();
 			}
@@ -234,9 +233,8 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			@Override
 			public int getDelay(){
 				int fps=prefs.drawspeedfps;
-				if(fps!=0){
+				if(fps!=0)
 					return 1000/Math.max(fps,1);
-				}
 				return 20;
 			}
 
@@ -250,7 +248,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 							hue-10f+random.nextInt(20),
 							((10+random.nextInt(11))/20.0f),
 							Math.min(1.0f,((value+random.nextInt(21))/40.0f))
-					}));							
+					}));
 				}
 				if(onDayStateCount==0){
 					updateDayState();
@@ -269,7 +267,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 									((10+random.nextInt(11))/20.0f),
 									((10+random.nextInt(11))/20.0f)
 							});
-							drawColor2(background,x,y);							
+							drawColor2(background,x,y);
 						}
 					}
 				}
@@ -279,36 +277,36 @@ public class ColorWallpaperService extends BaseWallpaperService {
 
 			private float getCurrentHue(){
 				if(prefs.usemonthcycle){
-					Calendar cal=Calendar.getInstance();
-					long time=new Date().getTime();
-					cal.setTimeInMillis(time);
-					cal.set(Calendar.HOUR_OF_DAY,0);
-					cal.set(Calendar.MINUTE,0);
-					cal.set(Calendar.SECOND,0);
-					cal.set(Calendar.MILLISECOND,0);
-					cal.set(Calendar.DAY_OF_MONTH,1);
-					long startOfMonth=cal.getTimeInMillis();
-					cal.add(Calendar.MONTH,1);
-					long startOfNextMonth=cal.getTimeInMillis();
-					float currentHue=(time-startOfMonth)*1.0f/(startOfNextMonth-startOfMonth);
+					long date=DateTimeUtility.getCurrentDate();
+					int[] components=DateTimeUtility.getLocalDateComponents(date);
+					int nextMonth=(components[1]==12) ? 1 : components[1]+1;
+					int yearForNextMonth=(components[1]==12) ? components[0]+1 : components[0];
+					long startOfMonth=DateTimeUtility.toLocalDate(
+							components[0],components[1],1,0,0,0);
+					long startOfNextMonth=DateTimeUtility.toLocalDate(
+							yearForNextMonth,nextMonth,1,0,0,0);
+					float currentHue=(date-startOfMonth)*1.0f/(startOfNextMonth-startOfMonth);
 					currentHue*=360.0;
 					return currentHue;
-				} else {
-					return prefs.colorhue;	
-				}
+				} else
+					return prefs.colorhue;
 			}
 
 			private int getValueOffset(){
 				int valueOffset=20;
 				if(prefs.usedaycycle){
-					if(dayState==SunriseSunset.DayState.Night)
+					if(dayState==SunriseSunset.DayState.Night) {
 						valueOffset=5;
-					if(dayState==SunriseSunset.DayState.NightToDay)
+					}
+					if(dayState==SunriseSunset.DayState.NightToDay) {
 						valueOffset=20;
-					if(dayState==SunriseSunset.DayState.DayToNight)
+					}
+					if(dayState==SunriseSunset.DayState.DayToNight) {
 						valueOffset=20;
-					if(dayState==SunriseSunset.DayState.Day)
+					}
+					if(dayState==SunriseSunset.DayState.Day) {
 						valueOffset=30;
+					}
 				}
 				return valueOffset;
 			}
@@ -336,14 +334,20 @@ public class ColorWallpaperService extends BaseWallpaperService {
 							currentLocation.getLatitude(),
 							currentLocation.getLongitude());
 				} else {
-					Calendar cal=Calendar.getInstance();
-					int hour=cal.get(Calendar.HOUR_OF_DAY);
-					if(hour<6)dayState=SunriseSunset.DayState.Night;
-					else if(hour<7)dayState=SunriseSunset.DayState.NightToDay;
-					else if(hour<17)dayState=SunriseSunset.DayState.Day;
-					else if(hour<18)dayState=SunriseSunset.DayState.DayToNight;
-					else dayState=SunriseSunset.DayState.Night;
-				}				
+					int[] components=DateTimeUtility.getCurrentLocalDateComponents();
+					int hour=components[3];
+					if(hour<6) {
+						dayState=SunriseSunset.DayState.Night;
+					} else if(hour<7) {
+						dayState=SunriseSunset.DayState.NightToDay;
+					} else if(hour<17) {
+						dayState=SunriseSunset.DayState.Day;
+					} else if(hour<18) {
+						dayState=SunriseSunset.DayState.DayToNight;
+					} else {
+						dayState=SunriseSunset.DayState.Night;
+					}
+				}
 			}
 
 			Bitmap modelBitmap=null;
@@ -364,7 +368,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				if(pic.startsWith("http://") ||
 						pic.startsWith("https://")){
 					DownloadService.sendRequest(AppManager.getApplication(),pic,
-							new IProcessResponseListener<Object>(){
+							new IResponseListener<Object>(){
 
 						@Override
 						public Object processResponse(String url,
@@ -378,9 +382,10 @@ public class ColorWallpaperService extends BaseWallpaperService {
 						@Override
 						public void onFinished(String url, Object value,
 								IOException exception) {
-							if(modelBitmap!=null)
+							if(modelBitmap!=null) {
 								modelBitmap.recycle();
-							modelBitmap=(value==null) ? null : (Bitmap)value;							
+							}
+							modelBitmap=(value==null) ? null : (Bitmap)value;
 						}
 
 					});
@@ -404,8 +409,9 @@ public class ColorWallpaperService extends BaseWallpaperService {
 
 						@Override
 						protected void onPostExecute(Bitmap b){
-							if(modelBitmap!=null)
+							if(modelBitmap!=null) {
 								modelBitmap.recycle();
+							}
 							modelBitmap=b;
 						}
 					}.execute(pic);
@@ -446,7 +452,7 @@ public class ColorWallpaperService extends BaseWallpaperService {
 			}
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor2(int color, int x, int y){
-				if(!this.isVisible())return;
+				if(!isVisible())return;
 				int widthlevel=prefs.boxsize;
 				int heightlevel=prefs.boxsize;
 				int x1=x-heightlevel+random.nextInt(widthlevel*2);
@@ -456,36 +462,44 @@ public class ColorWallpaperService extends BaseWallpaperService {
 				Rect r=new Rect(
 						Math.max(0,x1-x2),
 						Math.max(0,y1-y2),
-						Math.min(this.width,x1+x2),
-						Math.min(this.height,y1+y2));
+						Math.min(width,x1+x2),
+						Math.min(height,y1+y2));
 				int frames=(prefs.fadeinboxes) ? 5 : 1;
 				addColorTransition(r,color,frames);
 			}
 			@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 			private void drawColor(int color){
-				if(!this.isVisible())return;
+				if(!isVisible())return;
 				int widthlevel=prefs.boxsize;
 				int heightlevel=prefs.boxsize;
-				int x1=random.nextInt(Math.max(1,this.width));
+				int x1=random.nextInt(Math.max(1,width));
 				int x2=random.nextInt(widthlevel);
-				int y1=random.nextInt(Math.max(1,this.height));
+				int y1=random.nextInt(Math.max(1,height));
 				int y2=random.nextInt(heightlevel);
 				Rect r=new Rect(
 						Math.max(0,x1-x2),
 						Math.max(0,y1-y2),
-						Math.min(this.width,x1+x2),
-						Math.min(this.height,y1+y2));
+						Math.min(width,x1+x2),
+						Math.min(height,y1+y2));
 				if(modelBitmap!=null){
 					int w=modelBitmap.getWidth();
 					int h=modelBitmap.getHeight();
 					float xmid=r.left+(r.right-r.left)/2;
 					float ymid=r.top+(r.bottom-r.top)/2;
-					int bitmapx=Math.round(xmid*w*1.0f/Math.max(1,this.width));
-					int bitmapy=Math.round(ymid*h*1.0f/Math.max(1,this.height));
-					if(bitmapx>=w)bitmapx=w-1;
-					if(bitmapy>=h)bitmapy=h-1;
-					if(bitmapx<0)bitmapx=0;
-					if(bitmapy<0)bitmapy=0;
+					int bitmapx=Math.round(xmid*w*1.0f/Math.max(1,width));
+					int bitmapy=Math.round(ymid*h*1.0f/Math.max(1,height));
+					if(bitmapx>=w) {
+						bitmapx=w-1;
+					}
+					if(bitmapy>=h) {
+						bitmapy=h-1;
+					}
+					if(bitmapx<0) {
+						bitmapx=0;
+					}
+					if(bitmapy<0) {
+						bitmapy=0;
+					}
 					color=modelBitmap.getPixel(bitmapx,bitmapy);
 					float[] hsv=new float[3];
 					Color.colorToHSV(color, hsv);

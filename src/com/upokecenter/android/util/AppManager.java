@@ -22,7 +22,7 @@ public final class AppManager {
 	private static Object syncRoot=new Object();
 	private static Context application=null;
 	private static boolean initialized=false;
-	
+
 	public static int getResource(String type, String name){
 		String packageName=getApplication().getApplicationInfo().packageName;
 		return getApplication().getResources().getIdentifier(name,type,packageName);
@@ -62,7 +62,7 @@ public final class AppManager {
 				packageName+".BuildConfig","DEBUG",false);
 		return ret;
 	}
-	
+
 	public static int getRotation(){
 		Context context=getApplication();
 		if(context==null)return Surface.ROTATION_0;
@@ -72,31 +72,30 @@ public final class AppManager {
 		Integer retval[]=new Integer[1];
 		// getRotation was added in API level 8 (Froyo)
 		if(!Reflection.invokeByNameWithTest(display,"getRotation",retval)){
-			if(!Reflection.invokeByNameWithTest(display,"getOrientation",retval)){
+			if(!Reflection.invokeByNameWithTest(display,"getOrientation",retval))
 				return Surface.ROTATION_0;
-			}
 		}
 		return retval[0];
 	}
-	
+
 	public static Context getApplication(){
 		synchronized(syncRoot){
 			return application;
 		}
 	}
-	
+
 	private static boolean isPreferenceXml(Resources resources, int id){
 		XmlResourceParser parser=null;
 		try {
 			parser=resources.getXml(id);
 			int evt=parser.getEventType();
 			while (evt != XmlPullParser.END_DOCUMENT) {
-			 if(evt==XmlPullParser.START_TAG){
-			   if(parser.getName().equals("PreferenceScreen")){
-				return true;
-			   } else return false;
-			 }
-			 evt=parser.next();
+				if(evt==XmlPullParser.START_TAG){
+					if(parser.getName().equals("PreferenceScreen"))
+						return true;
+					else return false;
+				}
+				evt=parser.next();
 			}
 			return false;
 		} catch(NotFoundException e){
@@ -106,19 +105,20 @@ public final class AppManager {
 		} catch (IOException e) {
 			return false;
 		} finally {
-			if(parser!=null)parser.close();
+			if(parser!=null) {
+				parser.close();
+			}
 		}
 	}
-	
+
 	public static void initialize(Context context){
 		if(context==null)return;
 		Context c=null;
 		synchronized(syncRoot){
 			if(!initialized){
 				initialized=true;
-			} else {
+			} else
 				return;
-			}
 		}
 		synchronized(syncRoot){
 			application=context.getApplicationContext();

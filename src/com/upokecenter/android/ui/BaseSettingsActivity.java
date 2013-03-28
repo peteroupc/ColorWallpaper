@@ -1,7 +1,5 @@
 package com.upokecenter.android.ui;
 
-import com.upokecenter.android.util.AppManager;
-
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -9,7 +7,9 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 
-public abstract class BaseSettingsActivity extends PreferenceActivity 
+import com.upokecenter.android.util.AppManager;
+
+public abstract class BaseSettingsActivity extends PreferenceActivity
 implements OnSharedPreferenceChangeListener {
 
 	protected abstract int getPreferenceResource();
@@ -21,7 +21,7 @@ implements OnSharedPreferenceChangeListener {
 			pref.setSummary(lpref.getEntries()[lpref.findIndexOfValue(currentValue)]);
 		}
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle inst) {
@@ -29,8 +29,8 @@ implements OnSharedPreferenceChangeListener {
 			AppManager.initialize(this);
 		}
 		super.onCreate(inst);
-		this.addPreferencesFromResource(getPreferenceResource());
-		SharedPreferences prefs=this.getPreferenceScreen().getSharedPreferences();
+		addPreferencesFromResource(getPreferenceResource());
+		SharedPreferences prefs=getPreferenceScreen().getSharedPreferences();
 		for(String key : prefs.getAll().keySet()){
 			updatePreference(prefs,findPreference(key));
 		}
@@ -46,14 +46,14 @@ implements OnSharedPreferenceChangeListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		this.getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void onPause() {
 		super.onPause();
-		this.getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 	}
 
 }

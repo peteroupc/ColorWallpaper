@@ -2,7 +2,6 @@ package com.upokecenter.android.location;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Date;
 
 import android.content.Context;
 import android.location.Criteria;
@@ -12,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 
+import com.upokecenter.util.DateTimeUtility;
 import com.upokecenter.util.Reflection;
 
 public final class LocationHelper implements ILocationHelper {
@@ -32,7 +32,7 @@ public final class LocationHelper implements ILocationHelper {
 	public LocationHelper(Context context){
 		listeners=new ArrayList<ISimpleLocationListener>();
 		application=context.getApplicationContext();
-		this.currentListener=new LocationListener(){
+		currentListener=new LocationListener(){
 			@Override public void onLocationChanged(Location loc){
 				if(loc!=null){
 					if(!twoProviders || lastKnownLocation==null){
@@ -42,11 +42,11 @@ public final class LocationHelper implements ILocationHelper {
 						}
 					} else {
 						if(timeOffsetNanos(loc,lastKnownLocation)>=0 ||
-						   loc.getAccuracy()<=lastKnownLocation.getAccuracy()){
+								loc.getAccuracy()<=lastKnownLocation.getAccuracy()){
 							lastKnownLocation=loc;
 							for(ISimpleLocationListener lis : listeners){
 								lis.onLocation(copyLocation(lastKnownLocation));
-							}							
+							}
 						}
 					}
 				}
@@ -93,12 +93,12 @@ public final class LocationHelper implements ILocationHelper {
 			long sysNanos=(Long)Reflection.invoke(loc,method2,0);
 			return Math.abs(locNanos-sysNanos)<nanosTolerance;
 		}
-		return Math.abs(new Date().getTime()-loc.getTime())<nanosTolerance/NANOS_PER_MS;
+		return Math.abs(DateTimeUtility.getCurrentDate()-loc.getTime())<nanosTolerance/NANOS_PER_MS;
 	}
 	private boolean findLastKnownLocation(){
-		if(lastKnownLocation==null && this.enabled){
+		if(lastKnownLocation==null && enabled){
 			LocationManager mgr=getLocationManager();
-			Location loc=(this.provider==null) ? null : mgr.getLastKnownLocation(this.provider);
+			Location loc=(provider==null) ? null : mgr.getLastKnownLocation(provider);
 			if(loc!=null){
 				if(isCloseEnough(loc,FRESHNESS_DELAY_NANOS)){
 					lastKnownLocation=loc;
@@ -117,30 +117,30 @@ public final class LocationHelper implements ILocationHelper {
 		listeners.clear();
 		if(started){
 			LocationManager mgr=getLocationManager();
-			mgr.removeUpdates(this.currentListener);
+			mgr.removeUpdates(currentListener);
 			started=false;
 			twoProviders=false;
 		}
 	}
-	
+
 	@Override
 	public void removeLocationListener(ISimpleLocationListener simpleListener){
 		listeners.remove(simpleListener);
 		if(listeners.size()==0 && started){
 			LocationManager mgr=getLocationManager();
-			mgr.removeUpdates(this.currentListener);
+			mgr.removeUpdates(currentListener);
 			started=false;
 			twoProviders=false;
 		}
 	}
 
 	@Override public void setFineAccuracy(boolean fine){
-		if(this.fineAccuracy==fine)return;
-		this.fineAccuracy=fine;
-		doSetLocationEnabled(this.userEnabledSetting);
+		if(fineAccuracy==fine)return;
+		fineAccuracy=fine;
+		doSetLocationEnabled(userEnabledSetting);
 		if(started){
 			LocationManager mgr=getLocationManager();
-			mgr.removeUpdates(this.currentListener);
+			mgr.removeUpdates(currentListener);
 			requestUpdates(mgr);
 		}
 	}
@@ -153,25 +153,25 @@ public final class LocationHelper implements ILocationHelper {
 		this.minDistanceInMeters=minDistanceInMeters;
 		if(started && newValues){
 			LocationManager mgr=getLocationManager();
-			mgr.removeUpdates(this.currentListener);
+			mgr.removeUpdates(currentListener);
 			requestUpdates(mgr);
 		}
 	}
 
 	private void requestUpdates(LocationManager mgr){
-		if(this.provider!=null){
+		if(provider!=null){
 			mgr.requestLocationUpdates(
-				this.provider,this.minTimeInSeconds*1000,
-				this.minDistanceInMeters,this.currentListener
-				);
-			if(LocationManager.GPS_PROVIDER.equals(this.provider) &&
-				mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+					provider,minTimeInSeconds*1000,
+					minDistanceInMeters,currentListener
+					);
+			if(LocationManager.GPS_PROVIDER.equals(provider) &&
+					mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
 				// If we have the GPS provider, also register the network provider
 				twoProviders=true;
 				mgr.requestLocationUpdates(
-					LocationManager.NETWORK_PROVIDER,this.minTimeInSeconds*1000,
-					this.minDistanceInMeters,this.currentListener
-					);
+						LocationManager.NETWORK_PROVIDER,minTimeInSeconds*1000,
+						minDistanceInMeters,currentListener
+						);
 			} else {
 				twoProviders=false;
 			}
@@ -185,9 +185,9 @@ public final class LocationHelper implements ILocationHelper {
 		if(!started){
 			requestUpdates(mgr);
 		}
-		doSetLocationEnabled(this.enabled);
+		doSetLocationEnabled(enabled);
 		listeners.add(simpleListener);
-		if(this.enabled){
+		if(enabled){
 			if(!findLastKnownLocation()){
 				simpleListener.onLocation(copyLocation(lastKnownLocation));
 			}
@@ -197,7 +197,7 @@ public final class LocationHelper implements ILocationHelper {
 	}
 	@Override
 	public void setLocationEnabled(boolean enabled){
-		this.userEnabledSetting=enabled;
+		userEnabledSetting=enabled;
 		doSetLocationEnabled(enabled);
 	}
 	private void doSetLocationEnabled(boolean enabled){
@@ -206,16 +206,16 @@ public final class LocationHelper implements ILocationHelper {
 			Criteria criteria = new Criteria();
 			criteria.setAccuracy((fineAccuracy) ? Criteria.ACCURACY_FINE : Criteria.ACCURACY_COARSE);
 			criteria.setCostAllowed(false);
-			this.provider=mgr.getBestProvider(criteria,true);
-			enabled=(this.provider!=null);
+			provider=mgr.getBestProvider(criteria,true);
+			enabled=(provider!=null);
 		}
 		this.enabled=enabled;
-		if(this.currentListener!=null && !this.enabled){
-			mgr.removeUpdates(this.currentListener);
+		if(currentListener!=null && !this.enabled){
+			mgr.removeUpdates(currentListener);
 		}
 		if(!this.enabled){
-			Location oldLocation=this.lastKnownLocation;
-			this.lastKnownLocation=null;
+			Location oldLocation=lastKnownLocation;
+			lastKnownLocation=null;
 			if(oldLocation!=null){
 				for(ISimpleLocationListener lis : listeners){
 					lis.onLocation(null);
@@ -226,6 +226,6 @@ public final class LocationHelper implements ILocationHelper {
 
 	@Override
 	public boolean isLocationEnabled() {
-		return this.enabled;
+		return enabled;
 	}
 }

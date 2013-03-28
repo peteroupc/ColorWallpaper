@@ -12,7 +12,7 @@ public interface ILocationHelper {
 			ISimpleLocationListener simpleListener);
 
 	public boolean isLocationEnabled();
-	
+
 	public void setLocationEnabled(boolean enabled);
 
 	public void setUpdateFrequency(int minTime, int minDistance);

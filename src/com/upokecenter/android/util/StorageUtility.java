@@ -1,8 +1,6 @@
 package com.upokecenter.android.util;
 
 import java.io.File;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 import android.Manifest;
@@ -11,12 +9,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 
-import com.upokecenter.util.DebugUtility;
+import com.upokecenter.util.DateTimeUtility;
 import com.upokecenter.util.Reflection;
 
 public final class StorageUtility {
 	private StorageUtility(){}
-	
+
 	public static File getPrivateCachePath(Context ctx){
 		return getPrivateCachePath(ctx,null);
 	}
@@ -28,15 +26,14 @@ public final class StorageUtility {
 
 	public static File getPrivateCachePath(Context ctx, String name){
 		File cacheroot=ctx.getCacheDir();
-		if(cacheroot==null){
+		if(cacheroot==null)
 			return (name==null || name.length()==0) ? null : new File(name);
-		} else {
-			return (name==null || name.length()==0) ? cacheroot : new File(cacheroot,name);	   
-		}
+		else
+			return (name==null || name.length()==0) ? cacheroot : new File(cacheroot,name);
 	}
 
 
-	
+
 	public static File getCachePath(Context ctx, String name){
 		File cacheroot=null;
 		// Check if we can write to external storage
@@ -48,7 +45,7 @@ public final class StorageUtility {
 				cacheroot=new File(Environment.getExternalStorageDirectory(),"Android");
 				cacheroot=new File(cacheroot,"data");
 				cacheroot=new File(cacheroot,ctx.getApplicationInfo().packageName);
-				cacheroot=new File(cacheroot,"cache");			
+				cacheroot=new File(cacheroot,"cache");
 			}
 			// isExternalStorageRemovable added in API level 9 (Gingerbread)
 			String mounted=Environment.MEDIA_MOUNTED;
@@ -57,9 +54,8 @@ public final class StorageUtility {
 			if(removable && (!mounted.equals(Environment.getExternalStorageState()))){
 				cacheroot=null;
 			}
-			if(cacheroot!=null){
-				return (name==null || name.length()==0) ? cacheroot : new File(cacheroot,name);	   
-			}
+			if(cacheroot!=null)
+				return (name==null || name.length()==0) ? cacheroot : new File(cacheroot,name);
 		}
 		return getPrivateCachePath(ctx,name);
 	}
@@ -71,41 +67,35 @@ public final class StorageUtility {
 			// exist: it won't make the directory for us.
 			// So check if it exists
 			File subdir=new File(storagedir,"Camera");
-			if(subdir.isDirectory()){
-				return getUniqueFileName(subdir);				
-			}
-			if(storagedir.isDirectory()){
+			if(subdir.isDirectory())
+				return getUniqueFileName(subdir);
+			if(storagedir.isDirectory())
 				return getUniqueFileName(storagedir);
-			}
 			storagedir=new File(Environment.getExternalStorageDirectory(),"Pictures");
-			if(storagedir.isDirectory()){
+			if(storagedir.isDirectory())
 				return getUniqueFileName(storagedir);
-			}
 			// Use the external storage directory itself as a last resort
 			storagedir=Environment.getExternalStorageDirectory();
-			if(storagedir.isDirectory()){
+			if(storagedir.isDirectory())
 				return getUniqueFileName(storagedir);
-			}
 		}
 		return null;
 	}
 
 	public static File getUniqueFileName(File storage){
 		if(storage==null)return null;
-		Calendar calendar=Calendar.getInstance();
-		calendar.setTimeInMillis(new Date().getTime());
+		int[] components=DateTimeUtility.getCurrentLocalDateComponents();
 		int i=0;
 		while(true){
 			String string=String.format(Locale.US,
 					"%04d-%02d-%02d-%d.png",
-					calendar.get(Calendar.YEAR),
-					calendar.get(Calendar.MONTH)+1,
-					calendar.get(Calendar.DAY_OF_MONTH),i
+					components[0],
+					components[1],
+					components[2],i
 					);
 			File file=new File(storage,string);
-			if(!file.exists()){
+			if(!file.exists())
 				return file;
-			}
 			i++;
 		}
 	}
@@ -117,7 +107,6 @@ public final class StorageUtility {
 		if(m2>=0){
 			memory=Math.min(memory,m2*1024L*1024L);
 		}
-		DebugUtility.log("%d %d",memory,m2);
 		long defaultCacheSize=Math.max(1L*1024L*1024L,memory/4);
 		return defaultCacheSize;
 	}

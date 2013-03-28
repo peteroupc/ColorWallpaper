@@ -57,9 +57,9 @@ public abstract class BaseWallpaperService extends WallpaperService
 			{
 				time = SystemClock.elapsedRealtime();
 				nextFrame();
-			}
-			else
+			} else {
 				stopRunnable();
+			}
 		}
 
 		/**
@@ -67,10 +67,10 @@ public abstract class BaseWallpaperService extends WallpaperService
 		 */
 		@Override
 		public void onSurfaceChanged(
-			SurfaceHolder holder,
-			int format,
-			int width,
-			int height )
+				SurfaceHolder holder,
+				int format,
+				int width,
+				int height )
 		{
 			super.onSurfaceChanged( holder, format, width, height );
 
@@ -89,12 +89,12 @@ public abstract class BaseWallpaperService extends WallpaperService
 
 		@Override
 		public void onOffsetsChanged(
-			float xOffset,
-			float yOffset,
-			float xOffsetStep,
-			float yOffsetStep,
-			int xPixelOffset,
-			int yPixelOffset )
+				float xOffset,
+				float yOffset,
+				float xOffsetStep,
+				float yOffsetStep,
+				int xPixelOffset,
+				int yPixelOffset )
 		{
 			nextFrame();
 		}
@@ -102,7 +102,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 		protected abstract void drawFrame( final Canvas c, final long e );
 
 		protected abstract void onFrame();
-		
+
 		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 		protected void nextFrame()
 		{
@@ -113,7 +113,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 
 			onFrame();
 			handler.postDelayed( runnable, getDelay() );
-			
+
 			final SurfaceHolder h = getSurfaceHolder();
 			Canvas c = null;
 

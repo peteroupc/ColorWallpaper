@@ -39,6 +39,9 @@ public class UriPreference extends AlertDialogPreference {
 					uri.getScheme().toLowerCase(Locale.US),
 					uri.getSchemeSpecificPart(),
 					uri.getFragment());
+			String scheme=uri.getScheme().toLowerCase(Locale.US);
+			if("data".equals(scheme) || "content".equals(scheme))
+				return null;
 			return uri;
 		} catch(URISyntaxException e){
 			return null;
@@ -48,7 +51,7 @@ public class UriPreference extends AlertDialogPreference {
 	public UriPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
-	
+
 	public static IDialogUpdater staticGetDialogUpdater() {
 		return new IDialogUpdater(){
 			@Override
@@ -62,7 +65,7 @@ public class UriPreference extends AlertDialogPreference {
 					editText.setSelection(editText.getText().length());
 				}
 			}
-	
+
 			@Override
 			public Object getValue(Dialog dialog) {
 				if(dialog==null)return "";
@@ -70,8 +73,8 @@ public class UriPreference extends AlertDialogPreference {
 				if(editText==null)return "";
 				return editText.getText().toString();
 			}
-	
-	
+
+
 			@Override
 			public void prepareDialog(final Dialog dialog) {
 				if(dialog==null)return;
@@ -93,7 +96,7 @@ public class UriPreference extends AlertDialogPreference {
 				// This must be last, in order to move the text to the end
 				editText.setSelection(editText.getText().length());
 			}
-	
+
 			@Override
 			public Class<?> getType() {
 				return String.class;
@@ -102,9 +105,9 @@ public class UriPreference extends AlertDialogPreference {
 			@Override
 			public boolean isValid(Object[] value) {
 				java.net.URI uri=convertToUri(value[0].toString());
-				if(uri==null){
+				if(uri==null)
 					return false;
-				} else {
+				else {
 					value[0]=uri.toString();
 					return true;
 				}
@@ -114,8 +117,9 @@ public class UriPreference extends AlertDialogPreference {
 
 	@Override
 	protected IDialogUpdater getDialogUpdater() {
-		if(updater==null)
+		if(updater==null) {
 			updater=staticGetDialogUpdater();
+		}
 		return updater;
 	}
 }

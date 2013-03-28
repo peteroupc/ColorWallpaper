@@ -8,12 +8,12 @@ public final class DummyLocationHelper implements ILocationHelper {
 
 	private ArrayList<ISimpleLocationListener> listeners=null;
 	public DummyLocationHelper(){
-		listeners=new ArrayList<ISimpleLocationListener>();		
+		listeners=new ArrayList<ISimpleLocationListener>();
 	}
 	public DummyLocationHelper(Context context){
 		listeners=new ArrayList<ISimpleLocationListener>();
 	}
-	
+
 	@Override
 	public void removeAllLocationListeners() {
 		listeners.clear();

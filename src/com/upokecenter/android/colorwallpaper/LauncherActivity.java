@@ -18,16 +18,16 @@ public class LauncherActivity extends Activity {
 		super.onDestroy();
 		DialogUtility.clean();
 	}
-	
+
 	@Override
 	public void onCreate(Bundle b){
 		super.onCreate(b);
 		AppManager.initialize(this);
-        DialogUtility.showChoices(this,R.string.app_name,
-				(Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN) ? 
-						R.array.entries_launcher_jellybean : 
+		DialogUtility.showChoices(this,R.string.app_name,
+				(Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN) ?
+						R.array.entries_launcher_jellybean :
 							R.array.entries_launcher,
-		    new IChoiceListener(){
+							new IChoiceListener(){
 			@Override
 			public void onChoice(int choice){
 				if(choice==0){ // Settings
@@ -42,7 +42,7 @@ public class LauncherActivity extends Activity {
 						intent.putExtra("android.service.wallpaper.extra.LIVE_WALLPAPER_COMPONENT",
 								new ComponentName(AppManager.getApplication(),ColorWallpaperService.class));
 					} else {
-						intent=new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);						
+						intent=new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
 					}
 					startActivity(intent);
 				}

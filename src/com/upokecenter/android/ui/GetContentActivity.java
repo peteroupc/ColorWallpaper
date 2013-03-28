@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
@@ -23,11 +24,10 @@ import android.widget.Toast;
 import com.upokecenter.android.util.AppManager;
 import com.upokecenter.android.util.StorageUtility;
 import com.upokecenter.util.ActionList;
-import com.upokecenter.util.DebugUtility;
 
-public class GetContentActivity extends Activity { 
+public class GetContentActivity extends Activity {
 	private static final class CameraIntentAsyncTask extends
-			AsyncTask<Void, Void, File> {
+	AsyncTask<Void, Void, File> {
 		private final GetContentActivity thisActivity;
 		private final Intent chooser;
 
@@ -44,8 +44,10 @@ public class GetContentActivity extends Activity {
 
 		@Override protected void onPostExecute(File param){
 			if(param!=null){
-				Intent cameraIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);							
+				Intent cameraIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+				if(Build.VERSION.SDK_INT<Build.VERSION_CODES.JELLY_BEAN){
 				cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(param));
+				}
 				thisActivity.externalFile=param.toString();
 				Intent intent2=new Intent(thisActivity,AlertDialogActivity.class);
 				String title="Enter a URL";
@@ -56,7 +58,7 @@ public class GetContentActivity extends Activity {
 					Uri uri=Uri.fromFile(new File(startValue));
 					intent2.putExtra("startValue",uri.toString());
 				} else {
-					intent2.putExtra("startValue",startValue);					
+					intent2.putExtra("startValue",startValue);
 				}
 				intent2=new LabeledIntent(intent2,null,title,0);
 				chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,
@@ -64,12 +66,12 @@ public class GetContentActivity extends Activity {
 			}
 			thisActivity.startActivityForResult(chooser,0xabcd);
 		}
-		
-		
+
+
 	}
 
 	private static final class MediaStoreAsyncTask extends
-			AsyncTask<Uri, Void, String> {
+	AsyncTask<Uri, Void, String> {
 		private final GetContentActivity thisInstance;
 
 		private MediaStoreAsyncTask(GetContentActivity thisInstance) {
@@ -78,7 +80,7 @@ public class GetContentActivity extends Activity {
 
 		@Override
 		protected String doInBackground(Uri... params) {
-			Cursor cursor=thisInstance.getContentResolver().query(params[0], 
+			Cursor cursor=thisInstance.getContentResolver().query(params[0],
 					new String[]{"_data"},null,null,null);
 			if(cursor==null)return null;
 			try {
@@ -93,17 +95,17 @@ public class GetContentActivity extends Activity {
 			if(path==null){
 				Toast.makeText(thisInstance,
 						AppManager.getStringResourceValue("imagenotsaved",
-								"We couldn't get the image."),Toast.LENGTH_SHORT).show();	
+								"We couldn't get the image."),Toast.LENGTH_SHORT).show();
 			}
 			if(thisInstance.callback>=0){
 				GetContentActivity.callbacks.triggerActionOnce(thisInstance.callback,path);
 			}
-			thisInstance.finish();						
+			thisInstance.finish();
 		}
 	}
 
 	private static final class BitmapWriteAsyncTask extends
-			AsyncTask<Bitmap, Void, File> {
+	AsyncTask<Bitmap, Void, File> {
 		private final GetContentActivity thisInstance;
 		private final Bitmap bitmap;
 
@@ -124,8 +126,9 @@ public class GetContentActivity extends Activity {
 				try {
 					return bitmap.compress(Bitmap.CompressFormat.PNG,0,fs) ? file : null;
 				} finally {
-					if(fs!=null)
+					if(fs!=null) {
 						try { fs.close(); } catch (IOException e) {}
+					}
 				}
 			} catch (FileNotFoundException e) {
 				return null;
@@ -167,7 +170,7 @@ public class GetContentActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if(requestCode == 0xabcd){
-			DebugUtility.log("result intent=%s",intent);
+			//DebugUtility.log("result intent=%s",intent);
 			if(resultCode==RESULT_CANCELED){
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,(String)null);
@@ -176,7 +179,7 @@ public class GetContentActivity extends Activity {
 				return;
 			}
 			if(intent!=null && new ComponentName(this,AlertDialogActivity.class).equals(intent.getComponent())){
-				DebugUtility.log("result extras=%s",intent.getExtras());
+				//DebugUtility.log("result extras=%s",intent.getExtras());
 				if(callback>=0){
 					callbacks.triggerActionOnce(callback,
 							resultCode==RESULT_OK ? intent.getStringExtra("result") : (String)null);
@@ -225,7 +228,7 @@ public class GetContentActivity extends Activity {
 			}
 			if(callback>=0){
 				callbacks.triggerActionOnce(callback,(String)null);
-			}		
+			}
 			finish();
 		}
 	}
@@ -251,7 +254,7 @@ public class GetContentActivity extends Activity {
 				//DebugUtility.log("startValue=%s",startValue);
 				callback=intent.getIntExtra("com.upokecenter.android.extra.CALLBACK",-1);
 				myIntent.setType(intent.getType()!=null ? intent.getType() : "image/*");
-				final Intent chooser=Intent.createChooser(myIntent, 
+				final Intent chooser=Intent.createChooser(myIntent,
 						intent.getStringExtra(Intent.EXTRA_TITLE));
 				if("image/*".equals(myIntent.getType())){
 					// Add camera intent only if external storage is mounted
@@ -259,7 +262,7 @@ public class GetContentActivity extends Activity {
 					final GetContentActivity thisActivity=this;
 					new CameraIntentAsyncTask(thisActivity, chooser).execute();
 				} else {
-					startActivityForResult(chooser,0xabcd);					
+					startActivityForResult(chooser,0xabcd);
 				}
 			}
 		}

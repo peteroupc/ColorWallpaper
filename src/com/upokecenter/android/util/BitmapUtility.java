@@ -14,12 +14,11 @@ public final class BitmapUtility {
 	private static Matrix parallelogramMatrix(
 			RectF srcRect, // Position of a rectangle
 			float[] destPara// how the top left/top right/bottom left
-			       // corners of the rectangle
-			       // are now expressed
-	){
-		if(destPara==null||srcRect==null||destPara.length<6){
+			// corners of the rectangle
+			// are now expressed
+			){
+		if(destPara==null||srcRect==null||destPara.length<6)
 			throw new IllegalArgumentException();
-		}
 		float srcPara[]=new float[]{
 				srcRect.left, // top left corner
 				srcRect.top,
@@ -47,10 +46,10 @@ public final class BitmapUtility {
 		matrixDst.preConcat(matrixInv);
 		return matrixDst;
 	}
-	
+
 	private static Object syncRoot=new Object();
 	private static int oldRotation=0;
-	
+
 	private static int getOldRotation(){
 		synchronized(syncRoot){ return oldRotation; }
 	}
@@ -59,11 +58,11 @@ public final class BitmapUtility {
 	}
 
 	public static Bitmap redrawBitmap(
-			Bitmap oldBitmap, 
-			int width, 
-			int height, 
+			Bitmap oldBitmap,
+			int width,
+			int height,
 			int background
-	){
+			){
 		Bitmap.Config oldConfig = null;
 		int oldWidth=0;
 		int oldHeight=0;
@@ -73,25 +72,27 @@ public final class BitmapUtility {
 			oldWidth=oldBitmap.getWidth();
 			oldHeight=oldBitmap.getHeight();
 			if(oldWidth==width && oldHeight==height){
-				if(getOldRotation()==AppManager.getRotation()){
+				if(getOldRotation()==AppManager.getRotation())
 					// No need to change the bitmap unless the rotation
 					// has changed
 					//DebugUtility.log("rotation unchanged");
 					return oldBitmap;
-				}
-				//DebugUtility.log("rotation changed despite same dims");
 			}
 		} else {
-			oldConfig=Bitmap.Config.ARGB_8888;
+			oldConfig=Bitmap.Config.ARGB_4444;
 		}
-		if(width<=0)width=1;
-		if(height<=0)height=1;
+		if(width<=0) {
+			width=1;
+		}
+		if(height<=0) {
+			height=1;
+		}
 		Bitmap newBitmap=Bitmap.createBitmap(width,height,oldConfig);
 		Canvas c=new Canvas(newBitmap);
 		if(Color.alpha(background)>0){
 			Paint p=new Paint();
 			p.setColor(background);
-			c.drawRect(new Rect(0,0,width,height),p);			
+			c.drawRect(new Rect(0,0,width,height),p);
 		}
 		if(hasOldBitmap){
 			Matrix mat=null;
@@ -129,18 +130,18 @@ public final class BitmapUtility {
 				if(turnedClockwise){
 					// turned clockwise
 					mat=parallelogramMatrix(new RectF(0,0,oldWidth,oldHeight),
-						new float[]{ 
-							width,0,
-							width,height,
-							0,0
-					});	
+							new float[]{
+						width,0,
+						width,height,
+						0,0
+					});
 				} else {
 					// turned counterclockwise
 					mat=parallelogramMatrix(new RectF(0,0,oldWidth,oldHeight),
-						new float[]{
-							0,height,
-							0,0,
-							width,height
+							new float[]{
+						0,height,
+						0,0,
+						width,height
 					});
 				}
 			} else {

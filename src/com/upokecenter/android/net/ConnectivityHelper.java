@@ -43,7 +43,9 @@ public final class ConnectivityHelper {
 	public void removeAllConnectionListeners(){
 		for(int i=0;i<connListeners.size();i++){
 			Context ctx=connListeners.get(i).context.get();
-			if(ctx!=null)ctx.unregisterReceiver(connListeners.get(i).receiver);
+			if(ctx!=null) {
+				ctx.unregisterReceiver(connListeners.get(i).receiver);
+			}
 		}
 	}
 
@@ -74,26 +76,23 @@ public final class ConnectivityHelper {
 		ConnectivityManager mgr=(ConnectivityManager)AppManager.getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo network=mgr.getActiveNetworkInfo();
 		if(network==null)return 0;
-		if(network.isConnected()){
+		if(network.isConnected())
 			return network.getType();
-		}
 		if(mgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnected()){
 			TelephonyManager tmgr=(TelephonyManager)AppManager.getApplication().getSystemService(Context.TELEPHONY_SERVICE);
 			return tmgr.getNetworkType();
 		}
 		return 0;
 	}
-	
+
 	public static int getConnectedNetworkType(){
 		ConnectivityManager mgr=(ConnectivityManager)AppManager.getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo network=mgr.getActiveNetworkInfo();
 		if(network==null)return 0;
-		if(network.isConnected()){
+		if(network.isConnected())
 			return network.getType();
-		}
-		if(mgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()){
+		if(mgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected())
 			return ConnectivityManager.TYPE_WIFI;
-		}
 		return 0;
 	}
 }

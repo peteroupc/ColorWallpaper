@@ -2,9 +2,6 @@ package com.upokecenter.android.ui;
 
 import java.lang.ref.WeakReference;
 
-import com.upokecenter.android.util.AppManager;
-import com.upokecenter.util.DebugUtility;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -17,32 +14,35 @@ import android.preference.Preference;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
+import com.upokecenter.android.util.AppManager;
+
 public class AlertDialogPreference extends Preference {
 
 	IDialogUpdater updater=null;
 
 	protected IDialogUpdater getDialogUpdater(){
-		if(updater==null)
+		if(updater==null) {
 			updater=new IDialogUpdater(){
-			@Override
-			public void setValue(Dialog dialog, Object value) {
-			}
-			@Override
-			public Object getValue(Dialog dialog) {
-				return 0;
-			}
-			@Override
-			public void prepareDialog(Dialog dialog) {
-			}
-			@Override
-			public Class<?> getType() {
-				return Void.TYPE;
-			}
-			@Override
-			public boolean isValid(Object[] value) {
-				return true;
-			}
-		};
+				@Override
+				public void setValue(Dialog dialog, Object value) {
+				}
+				@Override
+				public Object getValue(Dialog dialog) {
+					return 0;
+				}
+				@Override
+				public void prepareDialog(Dialog dialog) {
+				}
+				@Override
+				public Class<?> getType() {
+					return Void.TYPE;
+				}
+				@Override
+				public boolean isValid(Object[] value) {
+					return true;
+				}
+			};
+		}
 		return updater;
 	}
 
@@ -54,15 +54,15 @@ public class AlertDialogPreference extends Preference {
 		Dialog dialog=alertDialog==null ? null : alertDialog.get();
 		Class<?> type=getDialogUpdater().getType();
 		Object value=getDialogUpdater().getValue(dialog);
-		if(type.equals(Integer.TYPE))
+		if(type.equals(Integer.TYPE)) {
 			b.putInt("value",(Integer)value);
-		else if(type.equals(Long.TYPE))
+		} else if(type.equals(Long.TYPE)) {
 			b.putLong("value",(Long)value);
-		else if(type.equals(Float.TYPE))
+		} else if(type.equals(Float.TYPE)) {
 			b.putFloat("value",(Float)value);
-		else if(type.equals(String.class))
+		} else if(type.equals(String.class)) {
 			b.putString("value",(String)value);
-		else if(!type.equals(Void.TYPE))
+		} else if(!type.equals(Void.TYPE))
 			throw new IllegalStateException();
 		boolean showing=dialog==null ? false : dialog.isShowing();
 		ret.getBundle().putBoolean("showing",showing);
@@ -75,8 +75,8 @@ public class AlertDialogPreference extends Preference {
 	@Override
 	protected void onRestoreInstanceState(Parcelable state) {
 		boolean isState=PreferenceState.isPreferenceState(state,this.getClass());
-//		DebugUtility.log("isState=%s state=%s [key=%s, getClass=%s]",isState,
-	//		isState ? ((PreferenceState)state).getSuperState() : state,
+		//		DebugUtility.log("isState=%s state=%s [key=%s, getClass=%s]",isState,
+		//		isState ? ((PreferenceState)state).getSuperState() : state,
 		//			getKey(),this.getClass());
 		super.onRestoreInstanceState(isState ? ((PreferenceState)state).getSuperState() : state);
 		if(isState){
@@ -87,15 +87,15 @@ public class AlertDialogPreference extends Preference {
 			}
 			Class<?> type=getDialogUpdater().getType();
 			Object value=null;
-			if(type.equals(Integer.TYPE))
+			if(type.equals(Integer.TYPE)) {
 				value=b.getInt("value");
-			else if(type.equals(Long.TYPE))
+			} else if(type.equals(Long.TYPE)) {
 				value=b.getLong("value");
-			else if(type.equals(Float.TYPE))
+			} else if(type.equals(Float.TYPE)) {
 				value=b.getFloat("value");
-			else if(type.equals(String.class))
+			} else if(type.equals(String.class)) {
 				value=b.getString("value");
-			else if(!type.equals(Void.TYPE))
+			} else if(!type.equals(Void.TYPE))
 				throw new IllegalStateException();
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),value);
 		}
@@ -129,15 +129,15 @@ public class AlertDialogPreference extends Preference {
 
 	private void persist(Object value){
 		Class<?> type=getDialogUpdater().getType();
-		if(type.equals(Integer.TYPE))
+		if(type.equals(Integer.TYPE)) {
 			persistInt((Integer)value);
-		else if(type.equals(Long.TYPE))
+		} else if(type.equals(Long.TYPE)) {
 			persistLong((Long)value);
-		else if(type.equals(Float.TYPE))
+		} else if(type.equals(Float.TYPE)) {
 			persistFloat((Float)value);
-		else if(type.equals(String.class))
+		} else if(type.equals(String.class)) {
 			persistString((String)value);
-		else if(!type.equals(Void.TYPE))
+		} else if(!type.equals(Void.TYPE))
 			throw new IllegalStateException();
 	}
 
@@ -173,10 +173,12 @@ public class AlertDialogPreference extends Preference {
 				"http://schemas.android.com/apk/res/android","positiveButtonText",0);
 		String strPos=attrs.getAttributeValue(
 				"http://schemas.android.com/apk/res/android","positiveButtonText");
-		if(negativeButton==0 && strNeg==null)
+		if(negativeButton==0 && strNeg==null) {
 			negativeButton=android.R.string.cancel;
-		if(positiveButton==0 && strPos==null)
+		}
+		if(positiveButton==0 && strPos==null) {
 			positiveButton=android.R.string.ok;
+		}
 		int summaryId=attrs.getAttributeResourceValue(
 				"http://schemas.android.com/apk/res/android","summary",0);
 		layoutResource=attrs.getAttributeResourceValue(
@@ -193,10 +195,12 @@ public class AlertDialogPreference extends Preference {
 
 	private void showDialog() {
 		AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
-		if(dialogMessage!=0 && "string".equals(getContext().getResources().getResourceTypeName(dialogMessage)))
+		if(dialogMessage!=0 && "string".equals(getContext().getResources().getResourceTypeName(dialogMessage))) {
 			builder=builder.setMessage(dialogMessage);
-		if(dialogTitle!=0)
+		}
+		if(dialogTitle!=0) {
 			builder=builder.setTitle(dialogTitle);
+		}
 		if(positiveButton!=0){
 			builder=builder.setPositiveButton(positiveButton,new DialogInterface.OnClickListener() {
 				@Override
@@ -209,9 +213,10 @@ public class AlertDialogPreference extends Preference {
 					} else {
 						if(callChangeListener(validatedValue[0])){
 							persist(validatedValue[0]);
-							if(!getDialogUpdater().getType().equals(Void.TYPE))
+							if(!getDialogUpdater().getType().equals(Void.TYPE)) {
 								setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,
 										getPersisted(null)));
+							}
 						}
 						alertDialog=null;
 					}
@@ -230,7 +235,7 @@ public class AlertDialogPreference extends Preference {
 		}
 		AlertDialog dialog=builder.show();
 		getDialogUpdater().prepareDialog(dialog);
-		getDialogUpdater().setValue(dialog,this.getPersisted(null));
+		getDialogUpdater().setValue(dialog,getPersisted(null));
 		alertDialog=new WeakReference<AlertDialog>(dialog);
 	}
 
@@ -244,15 +249,17 @@ public class AlertDialogPreference extends Preference {
 	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		if (restorePersistedValue) {
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
-					this.getPersisted(defaultValue));
-			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,this.getPersisted(defaultValue)));
+					getPersisted(defaultValue));
+			if(!getDialogUpdater().getType().equals(Void.TYPE)) {
+				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,getPersisted(defaultValue)));
+			}
 		} else {
 			persist(defaultValue);
 			getDialogUpdater().setValue(alertDialog==null ? null : alertDialog.get(),
 					defaultValue);
-			if(!getDialogUpdater().getType().equals(Void.TYPE))
-				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,this.getPersisted(defaultValue)));
+			if(!getDialogUpdater().getType().equals(Void.TYPE)) {
+				setSummary(String.format(settingSummary==null ? defaultFormat() : settingSummary,getPersisted(defaultValue)));
+			}
 		}
 	}
 
