@@ -79,7 +79,7 @@ public final class BitmapUtility {
 					return oldBitmap;
 			}
 		} else {
-			oldConfig=Bitmap.Config.ARGB_4444;
+			oldConfig=Bitmap.Config.ARGB_8888;
 		}
 		if(width<=0) {
 			width=1;

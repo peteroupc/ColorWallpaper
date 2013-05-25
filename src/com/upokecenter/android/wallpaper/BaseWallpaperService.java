@@ -1,4 +1,4 @@
-/*
+
  * Modified by Peter O. from public domain code written
  * in 2012 by Markus Fisch <mf@markusfisch.de>
  * 
@@ -64,7 +64,7 @@ public abstract class BaseWallpaperService extends WallpaperService
 
 		/**
 		 * @inheritDoc
-		 */
+		 
 		@Override
 		public void onSurfaceChanged(
 				SurfaceHolder holder,
