@@ -1,9 +1,8 @@
-
- * Modified by Peter O. from public domain code written
+* Modified by Peter O. from public domain code written
  * in 2012 by Markus Fisch <mf@markusfisch.de>
- * 
+ *
  * In the public domain.
- * 
+ *
  */
 package com.upokecenter.android.wallpaper;
 
@@ -15,132 +14,131 @@ import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
-
 @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
 public abstract class BaseWallpaperService extends WallpaperService
 {
-	@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
-	protected abstract class Engine extends WallpaperService.Engine
-	{
-		protected int getDelay(){
-			return 40;
-		}
+  @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
+  protected abstract class Engine extends WallpaperService.Engine
+  {
+    protected int getDelay(){
+      return 40;
+    }
 
-		final private Handler handler = new Handler();
-		final private Runnable runnable = new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				nextFrame();
-			}
-		};
+    final private Handler handler = new Handler();
+    final private Runnable runnable = new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        nextFrame();
+      }
+    };
 
-		private boolean visible = false;
-		private long time = 0;
+    private boolean visible = false;
+    private long time = 0;
 
-		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
-		@Override
-		public void onDestroy()
-		{
-			super.onDestroy();
+    @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
+    @Override
+    public void onDestroy()
+    {
+      super.onDestroy();
 
-			stopRunnable();
-		}
+      stopRunnable();
+    }
 
-		@Override
-		public void onVisibilityChanged( boolean v )
-		{
-			visible = v;
+    @Override
+    public void onVisibilityChanged( boolean v )
+    {
+      visible = v;
 
-			if( visible )
-			{
-				time = SystemClock.elapsedRealtime();
-				nextFrame();
-			} else {
-				stopRunnable();
-			}
-		}
+      if( visible )
+      {
+        time = SystemClock.elapsedRealtime();
+        nextFrame();
+      } else {
+        stopRunnable();
+      }
+    }
 
-		/**
-		 * @inheritDoc
-		 
-		@Override
-		public void onSurfaceChanged(
-				SurfaceHolder holder,
-				int format,
-				int width,
-				int height )
-		{
-			super.onSurfaceChanged( holder, format, width, height );
+    /**
+     * @inheritDoc
 
-			nextFrame();
-		}
+    @Override
+    public void onSurfaceChanged(
+        SurfaceHolder holder,
+        int format,
+        int width,
+        int height )
+    {
+      super.onSurfaceChanged( holder, format, width, height );
 
-		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
-		@Override
-		public void onSurfaceDestroyed( SurfaceHolder holder )
-		{
-			visible = false;
-			stopRunnable();
+      nextFrame();
+    }
 
-			super.onSurfaceDestroyed( holder );
-		}
+    @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
+    @Override
+    public void onSurfaceDestroyed( SurfaceHolder holder )
+    {
+      visible = false;
+      stopRunnable();
 
-		@Override
-		public void onOffsetsChanged(
-				float xOffset,
-				float yOffset,
-				float xOffsetStep,
-				float yOffsetStep,
-				int xPixelOffset,
-				int yPixelOffset )
-		{
-			nextFrame();
-		}
+      super.onSurfaceDestroyed( holder );
+    }
 
-		protected abstract void drawFrame( final Canvas c, final long e );
+    @Override
+    public void onOffsetsChanged(
+        float xOffset,
+        float yOffset,
+        float xOffsetStep,
+        float yOffsetStep,
+        int xPixelOffset,
+        int yPixelOffset )
+    {
+      nextFrame();
+    }
 
-		protected abstract void onFrame();
+    protected abstract void drawFrame( final Canvas c, final long e );
 
-		@TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
-		protected void nextFrame()
-		{
-			stopRunnable();
+    protected abstract void onFrame();
 
-			if( !visible )
-				return;
+    @TargetApi(Build.VERSION_CODES.ECLAIR_MR1)
+    protected void nextFrame()
+    {
+      stopRunnable();
 
-			onFrame();
-			handler.postDelayed( runnable, getDelay() );
+      if( !visible )
+        return;
 
-			final SurfaceHolder h = getSurfaceHolder();
-			Canvas c = null;
+      onFrame();
+      handler.postDelayed( runnable, getDelay() );
 
-			try
-			{
-				if( (c = h.lockCanvas()) != null )
-				{
-					final long now = SystemClock.elapsedRealtime();
-					drawFrame( c, now-time );
-					time = now;
-				}
-			}
-			finally
-			{
-				if(c!=null && h!=null){
-					try {
-						h.unlockCanvasAndPost(c);
-					} catch(IllegalArgumentException e){
+      final SurfaceHolder h = getSurfaceHolder();
+      Canvas c = null;
 
-					}
-				}
-			}
-		}
+      try
+      {
+        if( (c = h.lockCanvas()) != null )
+        {
+          final long now = SystemClock.elapsedRealtime();
+          drawFrame( c, now-time );
+          time = now;
+        }
+      }
+      finally
+      {
+        if(c!=null && h!=null){
+          try {
+            h.unlockCanvasAndPost(c);
+          } catch(IllegalArgumentException e){
 
-		private void stopRunnable()
-		{
-			handler.removeCallbacks( runnable );
-		}
-	}
+          }
+        }
+      }
+    }
+
+    private void stopRunnable()
+    {
+      handler.removeCallbacks( runnable );
+    }
+  }
 }

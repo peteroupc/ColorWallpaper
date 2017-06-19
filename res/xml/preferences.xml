@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen 
+<PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res/com.upokecenter.android.colorwallpaper"
      >
@@ -26,7 +26,7 @@
         android:key="colorhue"
         android:dependency="usemonthcycle"
         android:dialogLayout="@layout/huedialoglayout"
-     	android:title="@string/colorhue"
+       android:title="@string/colorhue"
         android:dialogTitle="@string/colorhue"
         android:summary="@string/summary_colorhue"
         custom:minValue="0"
@@ -48,7 +48,7 @@
 <com.upokecenter.android.ui.ContinuousValuePreference
         android:key="boxsize"
         android:dialogLayout="@layout/huedialoglayout"
-     	android:title="@string/boxsize"
+       android:title="@string/boxsize"
         android:dialogTitle="@string/boxsize"
         android:summary="@string/summary_boxsize"
         custom:minValue="10"
@@ -62,7 +62,7 @@
 <com.upokecenter.android.ui.ChoosePicturePreference
         android:key="picture"
         android:dependency="usemodelbg"
-        android:title="@string/picture" 
+        android:title="@string/picture"
         android:dialogTitle="@string/choosepicture"
         android:summary="@string/summary_picture"
         android:defaultValue="" />
@@ -79,7 +79,7 @@
 </PreferenceCategory>
    <PreferenceCategory
        android:title="@string/category_thisprogram">
-<com.upokecenter.android.ui.IntentPreference 
+<com.upokecenter.android.ui.IntentPreference
     android:title="@string/donate" >
     <intent android:action="android.intent.action.VIEW"
         android:data="http://www.upokecenter.com/d"/>
@@ -98,17 +98,17 @@
             android:value="@string/sharesubject"></extra>
         </intent>
 </com.upokecenter.android.ui.IntentPreference>
-<com.upokecenter.android.ui.IntentPreference 
+<com.upokecenter.android.ui.IntentPreference
     android:title="@string/homepage" >
     <intent android:action="android.intent.action.VIEW"
         android:data="http://www.upokecenter.com/projects/colorwallpaper"/>
 </com.upokecenter.android.ui.IntentPreference>
-    
+
 <com.upokecenter.android.ui.AlertDialogPreference
     android:key="about"
      android:title="@string/about"
      android:dialogMessage="@string/aboutmessage"
-     android:dialogTitle="@string/app_name" 
+     android:dialogTitle="@string/app_name"
      android:negativeButtonText="@null"
      android:positiveButtonText="@string/close" />
 </PreferenceCategory>

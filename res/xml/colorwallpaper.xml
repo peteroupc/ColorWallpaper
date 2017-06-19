@@ -1,4 +1,4 @@
-<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"  
+<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
     android:thumbnail="@drawable/wallpaperthumbnail"
     android:description="@string/description"
     android:settingsActivity="com.upokecenter.android.colorwallpaper.SettingsActivity"
